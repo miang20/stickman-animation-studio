@@ -1,3 +1,6 @@
 # Reproducible free-runner dependencies (Python 3.11)
 Pillow==11.3.0
 numpy==2.2.6
+kokoro==0.9.4
+transformers==4.49.0
+soundfile==0.13.1
