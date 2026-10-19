@@ -235,7 +235,8 @@ def draw_character(draw, c, x, ground, t, scale=1.0, action="idle", facing=1, ac
 
 
 def action_for(scene):
-    action = (scene.get("motion") or scene.get("action", "")).lower()
+    requested = str(scene.get("motion", "")).lower()
+    action = str(scene.get("action", "") if requested in ("", "auto") else requested).lower()
     rules = [
         (("run", "sprint", "chase", "escape", "dash"), "run"),
         (("sneak", "tiptoe", "creep", "quietly"), "sneak"),
