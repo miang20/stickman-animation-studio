@@ -1,0 +1,80 @@
+{
+  "title": "The Impossible Plan",
+  "fps": 24,
+  "characters": [
+    {
+      "id": "professor",
+      "name": "The Planner",
+      "head": "round",
+      "hair": "neat",
+      "outfit": "#b83232",
+      "accent": "#f1c6a8",
+      "role": "mastermind"
+    },
+    {
+      "id": "rookie",
+      "name": "Rookie",
+      "head": "round",
+      "hair": "messy",
+      "outfit": "#c83c3c",
+      "accent": "#f4c9a5",
+      "role": "comic-relief"
+    },
+    {
+      "id": "guard",
+      "name": "Guard",
+      "head": "round",
+      "hair": "short",
+      "outfit": "#34495e",
+      "accent": "#e6b995",
+      "role": "security"
+    }
+  ],
+  "scenes": [
+    {
+      "setting": "safehouse",
+      "duration": 8,
+      "characters": [
+        "professor",
+        "rookie"
+      ],
+      "action": "The Planner reveals a complicated plan on a wall map while Rookie nods too confidently.",
+      "dialogue": "Planner: Every second of this plan matters. Rookie: Absolutely. I understood at least... the map.",
+      "caption": "THE PLAN IS PERFECT. THE ROOKIE? NOT SO MUCH."
+    },
+    {
+      "setting": "safehouse",
+      "duration": 8,
+      "characters": [
+        "professor",
+        "rookie"
+      ],
+      "action": "Rookie turns the map upside down and gives a proud thumbs-up. The Planner freezes in disbelief.",
+      "dialogue": "Planner: Why is the map upside down? Rookie: To surprise the guards.",
+      "caption": "STEP ONE: CONFUSE EVERYONE. INCLUDING YOURSELF."
+    },
+    {
+      "setting": "street",
+      "duration": 8,
+      "characters": [
+        "rookie",
+        "guard"
+      ],
+      "action": "Rookie sneaks dramatically along a quiet street, but waves cheerfully at a suspicious guard.",
+      "dialogue": "Guard: What are you doing here? Rookie: Practising being invisible.",
+      "caption": "STEALTH LEVEL: ABSOLUTELY ZERO."
+    },
+    {
+      "setting": "bank",
+      "duration": 8,
+      "characters": [
+        "professor",
+        "rookie",
+        "guard"
+      ],
+      "action": "The team reaches a grand fictional bank entrance. Rookie proudly presses a doorbell instead of the secret signal.",
+      "dialogue": "Planner: That was not the signal. Rookie: It made a very convincing beep.",
+      "caption": "THE HEIST HAS OFFICIALLY GONE OFF SCRIPT."
+    }
+  ]
+}
