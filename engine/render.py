@@ -20,7 +20,7 @@ TMP = ROOT / ".render_tmp"
 SCRIPT = ROOT / "scripts" / "episode.json"
 FPS = 24
 W, H = (1920, 1080) if os.getenv("RESOLUTION", "720p") == "1080p" else (1280, 720)
-DURATION_MINUTES = max(1, min(8, int(os.getenv("DURATION_MINUTES", "1"))))
+DURATION_MINUTES = max(1, min(8, int(os.getenv("DURATION_MINUTES", "5"))))
 VOICE_ON = os.getenv("VOICE", "on").lower() == "on"
 SR = 22050
 random.seed(2026)
@@ -346,7 +346,7 @@ def audio_track(scenes, total_seconds):
                     voice[start:end] += clip[:end - start] * .58
                     voice_windows.append((start, end))
         action_text = (str(scene.get("action", "")) + " " + str(scene.get("sfx", ""))).lower()
-        kind = "alarm" if any(k in action_text for k in ("alarm", "sirens", "siren")) else ("beep" if any(k in action_text for k in ("beep", "button", "keypad")) else ("impact" if any(k in action_text for k in ("crash", "slam", "fall", "bang", "thud")) else None))
+        kind = "alarm" if any(k in action_text for k in ("alarm", "sirens", "siren")) else ("beep" if any(k in action_text for k in ("beep", "button", "keypad", "doorbell")) else ("impact" if any(k in action_text for k in ("crash", "slam", "fall", "bang", "thud")) else None))
         if kind:
             fx = synth_sfx(kind, .45 if kind == "alarm" else .22)
             at = min(total_n, int((cursor + slot * .72) * SR))
