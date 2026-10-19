@@ -1,0 +1,76 @@
+name: Render Stickman Episode
+
+on:
+  workflow_dispatch:
+    inputs:
+      duration_minutes:
+        description: "Output duration in minutes (start with 1 for the first test)"
+        required: true
+        type: choice
+        options:
+          - "1"
+          - "2"
+          - "3"
+          - "5"
+          - "8"
+        default: "1"
+      resolution:
+        description: "Render resolution"
+        required: true
+        type: choice
+        options:
+          - "720p"
+          - "1080p"
+        default: "720p"
+      voice:
+        description: "Narration voice"
+        required: true
+        type: choice
+        options:
+          - "on"
+          - "off"
+        default: "on"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stickman-render-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install rendering tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg espeak-ng fonts-dejavu-core
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install Python dependencies
+        run: python -m pip install --upgrade pip && pip install -r requirements.txt
+
+      - name: Render MP4
+        env:
+          DURATION_MINUTES: ${{ inputs.duration_minutes }}
+          RESOLUTION: ${{ inputs.resolution }}
+          VOICE: ${{ inputs.voice }}
+        run: python engine/render.py
+
+      - name: Upload MP4 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: stickman-episode-mp4
+          path: output/*.mp4
+          if-no-files-found: error
+          retention-days: 3
