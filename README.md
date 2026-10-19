@@ -6,7 +6,7 @@ A free-first, code-based 2D cartoon episode maker. It uses Python, Pillow, NumPy
 
 - Reusable character bible with stable IDs, outfit colours, hair and roles.
 - Ten hand-drawn environments: safehouse, bank, street, police area, warehouse, rooftop, vault, control room, van and hall.
-- Reusable walk/run/sneak/point/wave/panic/fall/celebrate/surrender poses, arm and leg cycles, character name labels and facial expressions.
+- Detailed illustrated stickman characters with round white heads, slim limbs, three-quarter facial features, outlined clothing silhouettes, collars/lapels, seams, cuffs, shoes, role-specific outfit details, facial expressions, and reusable walk/run/sneak/point/wave/panic/fall/celebrate/surrender poses.
 - Original 30-scene, five-minute heist-comedy sample story.
 - **Kokoro neural narration**, with `af_heart` as the default voice.
 - Captions with high-contrast panels and selected red keyword highlights.
@@ -75,7 +75,7 @@ For a five-minute episode, use around 30 scenes at 10 seconds each. For an eight
 
 - Rendering is CPU-based and uses free GitHub Actions minutes/runner time where applicable. A 1080p, eight-minute job is much heavier than a 720p, one-minute job.
 - Kokoro is an open-weight neural voice model; the model and required packages must download during setup. It is not a zero-download or instant first-run process.
-- This is deterministic, code-drawn 2D animation—not full generative animation, hand-keyframed studio animation, or live-action footage. Motion is built from reusable poses and cycles.
+- This is deterministic, code-drawn 2D animation—not full generative animation, hand-keyframed studio animation, or live-action footage. Characters are drawn as designed illustrations rather than bare line-and-circle symbols; motion is built from reusable poses and cycles. The first render must still be reviewed for visual quality and any proportion/layout fixes.
 - The renderer caches each setting's background to reduce repeated work. Runtime and visual quality must still be confirmed by the first authorized render.
 - Temporary render/audio files are written to `.render_tmp` and cleaned up after a successful render. The MP4 and SRT are written to `output/`; the workflow uploads them as the artifact.
 - The sample is an original fictional heist comedy. For a series inspired by heist fiction, use original characters, dialogue, scenes and branding rather than copying protected movie scenes or character likenesses.

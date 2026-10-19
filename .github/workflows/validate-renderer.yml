@@ -1,0 +1,22 @@
+name: Validate Stickman Renderer
+on:
+  push:
+    branches:
+      - "visual-upgrade/**"
+  pull_request:
+    branches:
+      - main
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Check Python syntax
+        run: python -m py_compile engine/render.py
+      - name: Validate episode JSON
+        run: python -m json.tool scripts/episode.json > /dev/null
