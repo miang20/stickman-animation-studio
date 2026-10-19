@@ -1,10 +1,6 @@
 name: One-minute 1080p af_heart smoke test
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/one-minute-1080p-test.yml"
   workflow_dispatch:
 
 permissions:
