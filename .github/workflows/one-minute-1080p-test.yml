@@ -1,0 +1,68 @@
+name: One-minute 1080p af_heart smoke test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/one-minute-1080p-test.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stickman-1080p-smoke-test
+  cancel-in-progress: false
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install rendering tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-dejavu-core
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install CPU-only PyTorch for Kokoro
+        run: python -m pip install torch==2.6.0+cpu --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install Python dependencies
+        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt
+
+      - name: Verify Kokoro imports
+        run: python -c "import torch, transformers, kokoro, soundfile; print('torch=' + torch.__version__); print('transformers=' + transformers.__version__); print('Kokoro imports OK')"
+
+      - name: Validate episode JSON
+        run: python -c "import json; from engine.render import validate; validate(json.load(open('scripts/episode.json', encoding='utf-8'))); print('Episode JSON valid')"
+
+      - name: Render one minute at 1080p with af_heart
+        env:
+          DURATION_MINUTES: "1"
+          RESOLUTION: "1080p"
+          VOICE: "on"
+          VOICE_NAME: "af_heart"
+        run: python engine/render.py
+
+      - name: Verify output metadata and duration
+        run: |
+          test -s output/stickman-episode.mp4
+          ffprobe -v error -show_entries format=duration,size -show_entries stream=codec_name,width,height,r_frame_rate -of default=noprint_wrappers=1 output/stickman-episode.mp4
+          python -c "import json, subprocess; p=subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration','-of','json','output/stickman-episode.mp4'], text=True); d=float(json.loads(p)['format']['duration']); assert 58 <= d <= 62, f'Expected about 60 seconds, got {d:.2f}s'; print(f'Duration check passed: {d:.2f}s')"
+          test -s output/captions.srt
+
+      - name: Upload test MP4 and captions
+        uses: actions/upload-artifact@v4
+        with:
+          name: stickman-1min-1080p-af-heart-test
+          path: output/*
+          if-no-files-found: error
+          retention-days: 7
