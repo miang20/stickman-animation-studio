@@ -11,7 +11,7 @@ A free-first, code-based 2D cartoon episode maker. It uses Python, Pillow, NumPy
 - Scene dialogue / narration from the free local eSpeak NG voice.
 - Captions with high-contrast panels and selected red keyword highlights.
 - Procedurally generated suspense music, simple action SFX and automatic music ducking under narration.
-- 24 fps H.264 MP4 with AAC audio, fast-start metadata and a post-render FFprobe check.
+- 24 fps H.264 MP4 with AAC audio, fast-start metadata, a post-render FFprobe check, and a separate scene-timed SRT caption file.
 - Manual-only GitHub Actions workflow and downloadable MP4 artifact retained for seven days.
 
 ## Android workflow
@@ -21,7 +21,7 @@ A free-first, code-based 2D cartoon episode maker. It uses Python, Pillow, NumPy
 3. Tap **Run workflow** when you want to create a video.
 4. Choose duration. The default is **5 minutes**. Choose **720p** first; 1080p requires more processing.
 5. Leave narration set to **on** unless you want a music-only render.
-6. After the workflow finishes successfully, open the run and download the **stickman-episode-mp4** artifact ZIP.
+6. After the workflow finishes successfully, open the run and download the **stickman-episode-package** artifact ZIP.
 7. Extract the ZIP on your phone to get `stickman-episode.mp4`.
 
 Nothing runs automatically on a push. The workflow has not been run as part of setup, so the first real render still needs to validate runtime speed and output quality.
@@ -53,6 +53,6 @@ For a five-minute episode, use around 30 scenes at 10 seconds each. For an eight
 ## Repository layout
 
 - `.github/workflows/render.yml` — manual render, validation and output verification.
-- `engine/render.py` — renderer, character acting, backgrounds, audio synthesis and validation.
+- `engine/render.py` — renderer, character acting, backgrounds, audio synthesis, SRT export and validation.
 - `scripts/episode.json` — character bible and 30-scene episode script.
 - `requirements.txt` — pinned open-source Python dependencies.
