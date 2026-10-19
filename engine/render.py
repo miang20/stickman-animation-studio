@@ -297,13 +297,34 @@ def synth_sfx(kind, seconds=.24):
     return (signal * envelope * .12).astype(np.float32)
 
 
-def synth_voice(path, text, rate=158):
-    exe = shutil.which("espeak-ng") or shutil.which("espeak")
-    if not exe:
-        return False
-    subprocess.run([exe, "-s", str(rate), "-w", str(path), str(text)[:420]],
-                   check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    return path.exists()
+def synth_kokoro(pipeline, text, voice_name="af_heart", speed=1.04):
+    """Generate natural English narration with the same Kokoro voice family as manga-video-maker."""
+    import re
+    sentences = [s.strip() for s in re.split(r"(?<=[,.!?])\s+", str(text).strip()) if s.strip()]
+    if not sentences:
+        raise RuntimeError("Kokoro received empty narration text.")
+    pieces = []
+    for sentence in sentences:
+        sentence_audio = []
+        for _, _, audio in pipeline(sentence, voice=voice_name, speed=float(speed)):
+            if audio is not None:
+                arr = audio.detach().cpu().numpy() if hasattr(audio, "detach") else np.asarray(audio)
+                sentence_audio.append(np.asarray(arr, dtype=np.float32).reshape(-1))
+        if not sentence_audio:
+            raise RuntimeError("Kokoro produced no audio for a narration sentence.")
+        pieces.append(np.concatenate(sentence_audio))
+        pause = 0.38 if sentence.endswith((".", "!", "?")) else 0.18
+        pieces.append(np.zeros(int(24000 * pause), dtype=np.float32))
+    audio = np.concatenate(pieces)
+    peak = float(np.max(np.abs(audio))) if audio.size else 0.0
+    if peak < 0.001:
+        raise RuntimeError("Kokoro generated silent narration.")
+    if peak > 0.95:
+        audio *= 0.95 / peak
+    # Kokoro emits 24 kHz; resample to the renderer's 22.05 kHz mix rate.
+    new_len = max(1, int(len(audio) * SR / 24000))
+    audio = np.interp(np.linspace(0, len(audio) - 1, new_len), np.arange(len(audio)), audio).astype(np.float32)
+    return audio
 
 
 def read_wav(path):
@@ -328,23 +349,32 @@ def audio_track(scenes, total_seconds):
     sfx = np.zeros(total_n, dtype=np.float32)
     cursor = 0.0
     voice_windows = []
+    voice_name = os.getenv("VOICE_NAME", "af_heart")
+    pipeline = None
+    if VOICE_ON:
+        try:
+            from kokoro import KPipeline
+            pipeline = KPipeline(lang_code="a")
+            print(f"NARRATION_ENGINE=Kokoro; voice={voice_name}; speed=1.04")
+        except Exception as exc:
+            raise RuntimeError(f"Kokoro voice engine could not initialize: {exc}") from exc
     for i, scene in enumerate(scenes):
         slot = float(scene["duration"])
         dialogue = str(scene.get("dialogue") or scene.get("narration") or scene.get("action", ""))
         start = int((cursor + min(.45, slot * .06)) * SR)
         available = max(1, int(max(.5, slot - .8) * SR))
         if VOICE_ON and dialogue:
-            wavpath = TMP / f"voice_{i}.wav"
-            if synth_voice(wavpath, dialogue):
-                clip = read_wav(wavpath)
-                if len(clip) > available:
-                    # Time-compress gently to fit the scene without changing pitch.
-                    new_len = available
-                    clip = np.interp(np.linspace(0, len(clip) - 1, new_len), np.arange(len(clip)), clip).astype(np.float32)
-                end = min(total_n, start + len(clip))
-                if end > start:
-                    voice[start:end] += clip[:end - start] * .58
-                    voice_windows.append((start, end))
+            # Strip speaker labels so the selected narrator reads the dialogue naturally.
+            import re
+            spoken_text = re.sub(r"(?i)\b(?:planner|rookie|pixel|captain\s+vale):\s*", " ", dialogue)
+            clip = synth_kokoro(pipeline, spoken_text, voice_name=voice_name, speed=1.04)
+            if len(clip) > available:
+                # Keep narration inside its scene slot; this is a rare safety limit for long dialogue.
+                clip = np.interp(np.linspace(0, len(clip) - 1, available), np.arange(len(clip)), clip).astype(np.float32)
+            end = min(total_n, start + len(clip))
+            if end > start:
+                voice[start:end] += clip[:end - start] * .62
+                voice_windows.append((start, end))
         action_text = (str(scene.get("action", "")) + " " + str(scene.get("sfx", ""))).lower()
         kind = "alarm" if any(k in action_text for k in ("alarm", "sirens", "siren")) else ("beep" if any(k in action_text for k in ("beep", "button", "keypad", "doorbell")) else ("impact" if any(k in action_text for k in ("crash", "slam", "fall", "bang", "thud")) else None))
         if kind:
