@@ -360,10 +360,20 @@ def audio_track(scenes, total_seconds):
     for start, end in voice_windows:
         a, b = max(0, start - int(.18 * SR)), min(total_n, end + int(.28 * SR))
         duck[a:b] = np.minimum(duck[a:b], .28)
-    # Smooth duck edges using a short moving average.
-    kernel = np.ones(max(1, int(.08 * SR)), dtype=np.float32)
-    kernel /= kernel.sum()
-    duck = np.convolve(duck, kernel, mode="same").astype(np.float32)
+    # Smooth duck edges with short ramps; avoid a costly full-track convolution.
+    fade = max(1, int(.10 * SR))
+    for start, end in voice_windows:
+        left = max(0, start - int(.18 * SR))
+        right = min(total_n, end + int(.28 * SR))
+        ramp_in_end = min(right, left + fade)
+        ramp_out_start = max(left, right - fade)
+        if ramp_in_end > left:
+            duck[left:ramp_in_end] = np.linspace(1.0, .28, ramp_in_end - left, dtype=np.float32)
+        if right > ramp_out_start:
+            duck[ramp_out_start:right] = np.minimum(
+                duck[ramp_out_start:right],
+                np.linspace(.28, 1.0, right - ramp_out_start, dtype=np.float32),
+            )
     mixed = np.clip(voice[:total_n] + sfx[:total_n] + music[:total_n] * duck, -.95, .95)
     path = TMP / "mix.wav"
     with wave.open(str(path), "wb") as w:
