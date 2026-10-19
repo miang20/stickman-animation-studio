@@ -153,86 +153,231 @@ def make_background(setting):
 
 
 def draw_character(draw, c, x, ground, t, scale=1.0, action="idle", facing=1, accent="#f2c14e", name_tag=True):
-    head = int(H * .060 * scale)
+    """Draw a designed, hand-inked stickman illustration—not a bundle of bare lines.
+
+    The round white head and slim limbs stay consistent. Clothing, face details,
+    joints, folds and small role cues add a readable three-quarter cartoon design.
+    """
+    head = max(18, int(H * .060 * scale))
     torso = int(H * .155 * scale)
     limb = int(H * .12 * scale)
-    line = max(4, int(H * .007 * scale))
-    skin, outfit = c.get("accent", "#f0c6a2"), c.get("outfit", "#c83c3c")
-    dark = "#141923"
+    ink = "#171a20"
+    face_fill = "#fffdf7"
+    hand_fill = c.get("accent", "#edc3a1")
+    outfit = c.get("outfit", "#b83232")
+    role = str(c.get("role", "")).lower()
+    pants = c.get("pants", "#252a34")
+    shoe = c.get("shoes", "#171a20")
+    line = max(3, int(H * .0055 * scale))
+    sleeve = max(7, int(H * .014 * scale))
     movement = {"walk": 1.0, "sneak": .6, "run": 1.7, "dash": 2.0}.get(action, 0.0)
-    bob = int(math.sin(t * (9 if movement else 2.5)) * H * (.010 if movement else .003))
+    bob = int(math.sin(t * (9 if movement else 2.5)) * H * (.010 if movement else .0025))
     y = int(ground + bob)
-    shoulder_y, hip_y = y - torso, y - int(torso * .28)
-    phase = math.sin(t * (9 if action in ("run", "dash") else 6)) * limb * .43 if movement else 0
+    shoulder_y = y - torso
+    hip_y = y - int(torso * .25)
+    phase = math.sin(t * (9 if action in ("run", "dash") else 6)) * limb * .42 if movement else 0
     if action == "sneak":
-        shoulder_y += int(H * .025)
-        hip_y += int(H * .02)
+        shoulder_y += int(H * .022)
+        hip_y += int(H * .018)
+
+    # Soft floor shadow gives the illustrated figure a little depth.
+    shadow_w = int(H * .060 * scale)
+    draw.ellipse((x - shadow_w, y + int(H * .012), x + shadow_w, y + int(H * .028)),
+                 fill="#202631")
+
+    # Slim trouser legs with inked outer edges, knees, and tiny shoes.
+    leg_starts = [(x - int(H * .009), hip_y), (x + int(H * .009), hip_y)]
+    leg_ends = [
+        (x - facing * limb * .34 + phase, y + limb * .69),
+        (x + facing * limb * .34 - phase, y + limb * .69),
+    ]
     if action in ("fall", "trip"):
-        shoulder_y += int(H * .09)
-    # legs, with visible alternating steps
-    leg1 = phase
-    leg2 = -phase
-    if action in ("fall", "trip"):
-        leg1, leg2 = -limb * .35, limb * .35
-    draw.line((x, hip_y, x - facing * limb * .34 + leg1, y + limb * .72), fill=dark, width=line, joint="curve")
-    draw.line((x, hip_y, x + facing * limb * .34 + leg2, y + limb * .72), fill=dark, width=line, joint="curve")
-    draw.line((x - facing * limb * .34 + leg1, y + limb * .72, x - facing * limb * .34 + leg1 + facing * line * 2, y + limb * .72), fill="#0d1118", width=line)
-    draw.line((x + facing * limb * .34 + leg2, y + limb * .72, x + facing * limb * .34 + leg2 + facing * line * 2, y + limb * .72), fill="#0d1118", width=line)
-    # torso and costume details
-    draw.line((x, shoulder_y, x, hip_y), fill=outfit, width=max(line * 4, 14))
-    draw.line((x - line, shoulder_y + 8, x - line, hip_y), fill="#f7e5d7", width=max(2, line // 2))
-    draw.line((x - line * 2, shoulder_y + int(torso * .3), x + line * 2, shoulder_y + int(torso * .3)), fill="#f7e5d7", width=max(2, line // 2))
+        leg_ends = [(x - limb * .38, y + limb * .48), (x + limb * .42, y + limb * .61)]
+    for idx, (start_pt, end_pt) in enumerate(zip(leg_starts, leg_ends)):
+        knee_x = int(start_pt[0] * .45 + end_pt[0] * .55)
+        knee_y = int(start_pt[1] * .48 + end_pt[1] * .52)
+        draw.line((start_pt, (knee_x, knee_y), end_pt), fill=ink, width=max(7, line * 2), joint="curve")
+        draw.line((start_pt, (knee_x, knee_y), end_pt), fill=pants, width=max(4, line), joint="curve")
+        draw.ellipse((knee_x - line, knee_y - line, knee_x + line, knee_y + line), fill=pants, outline=ink, width=1)
+        foot_x = end_pt[0] + facing * int(H * .010)
+        foot_y = end_pt[1]
+        draw.rounded_rectangle((foot_x - int(H * .012), foot_y - int(H * .006),
+                                foot_x + int(H * .015), foot_y + int(H * .008)),
+                               radius=max(3, line), fill=shoe, outline=ink, width=max(1, line // 3))
+
+    # Tailored torso silhouette. The body remains narrow, but the outfit is a
+    # real filled garment with shoulders, waist, collar and drawn construction.
+    shoulder_half = int(H * .043 * scale)
+    waist_half = int(H * .026 * scale)
+    torso_poly = [
+        (x - shoulder_half, shoulder_y + int(H * .012)),
+        (x - int(shoulder_half * .70), shoulder_y),
+        (x + int(shoulder_half * .70), shoulder_y),
+        (x + shoulder_half, shoulder_y + int(H * .012)),
+        (x + waist_half, hip_y),
+        (x - waist_half, hip_y),
+    ]
+    draw.polygon(torso_poly, fill=outfit)
+    draw.line(torso_poly + [torso_poly[0]], fill=ink, width=line, joint="curve")
+    # Inner shirt and asymmetric lapels reinforce the three-quarter angle.
+    shirt_w = max(5, int(H * .013 * scale))
+    draw.polygon([
+        (x - shirt_w, shoulder_y + int(H * .006)),
+        (x + shirt_w, shoulder_y + int(H * .006)),
+        (x + int(H * .010), shoulder_y + int(torso * .34)),
+        (x, shoulder_y + int(torso * .43)),
+        (x - int(H * .010), shoulder_y + int(torso * .34)),
+    ], fill="#f3eadb", outline=ink)
+    draw.line((x + facing * int(H * .005), shoulder_y + int(torso * .28),
+               x + facing * int(H * .004), hip_y - int(H * .012)), fill="#792d30" if outfit.lower() == "#b83232" else "#39414d", width=max(2, line // 2))
+    # Small collar points, buttons and pocket seams are drawn rather than implied.
+    draw.line((x - shirt_w, shoulder_y + int(H * .006), x - int(H * .002), shoulder_y + int(H * .026)), fill=ink, width=max(2, line // 2))
+    draw.line((x + shirt_w, shoulder_y + int(H * .006), x + int(H * .002), shoulder_y + int(H * .026)), fill=ink, width=max(2, line // 2))
+    for by in (shoulder_y + int(torso * .47), shoulder_y + int(torso * .60)):
+        draw.ellipse((x + facing * int(H * .004) - 2, by - 2, x + facing * int(H * .004) + 2, by + 2), fill=ink)
+    pocket_y = shoulder_y + int(torso * .31)
+    draw.line((x - int(H * .022), pocket_y, x - int(H * .006), pocket_y), fill="#f1d7bd", width=max(2, line // 2))
+    if "security" in role:
+        # A neat uniform collar and shoulder tabs distinguish the guard at a glance.
+        draw.line((x - shoulder_half + 2, shoulder_y + int(H * .014), x - int(H * .018), shoulder_y + int(H * .035)), fill="#d8dce2", width=max(3, line))
+        draw.line((x + shoulder_half - 2, shoulder_y + int(H * .014), x + int(H * .018), shoulder_y + int(H * .035)), fill="#d8dce2", width=max(3, line))
+        draw.rounded_rectangle((x + int(H * .012), shoulder_y + int(torso * .40),
+                                x + int(H * .030), shoulder_y + int(torso * .54)),
+                               radius=3, fill="#e0b84f", outline=ink, width=1)
+    elif "tech" in role:
+        # Hood seam and zipper for the tech character's hoodie-like outfit.
+        draw.arc((x - shoulder_half, shoulder_y - int(H * .008), x + shoulder_half, shoulder_y + int(H * .09)),
+                 195, 345, fill=ink, width=max(2, line // 2))
+        draw.line((x, shoulder_y + int(torso * .30), x, hip_y - int(H * .01)), fill="#d2e9e4", width=max(2, line // 2))
+    elif "mastermind" in role:
+        draw.line((x - shoulder_half + 2, shoulder_y + int(H * .016),
+                   x - int(H * .012), shoulder_y + int(H * .052)), fill="#f1c9b7", width=max(2, line // 2))
+        draw.line((x + shoulder_half - 2, shoulder_y + int(H * .016),
+                   x + int(H * .012), shoulder_y + int(H * .052)), fill="#f1c9b7", width=max(2, line // 2))
+
+    # Arms use thin visible limbs, coloured sleeves, elbows and hand shapes.
     arm_len = int(H * .105 * scale)
     if action in ("panic", "react", "surrender"):
-        left = (x - arm_len * .75, shoulder_y - arm_len * .6)
-        right = (x + arm_len * .75, shoulder_y - arm_len * .6)
+        left = (x - arm_len * .80, shoulder_y - arm_len * .55)
+        right = (x + arm_len * .80, shoulder_y - arm_len * .55)
     elif action in ("point", "aim"):
-        left = (x - facing * arm_len * .7, shoulder_y + arm_len * .7)
-        right = (x + facing * arm_len, shoulder_y - arm_len * .25)
+        left = (x - facing * arm_len * .65, shoulder_y + arm_len * .67)
+        right = (x + facing * arm_len, shoulder_y - arm_len * .22)
     elif action in ("wave", "celebrate"):
-        left = (x - arm_len * .65, shoulder_y - arm_len * .65)
-        right = (x + arm_len * .65, shoulder_y - arm_len * .8 + math.sin(t * 10) * 12)
+        left = (x - arm_len * .62, shoulder_y - arm_len * .48)
+        right = (x + arm_len * .64, shoulder_y - arm_len * .82 + math.sin(t * 10) * 12)
     elif action == "sneak":
-        left, right = (x - arm_len * .6, shoulder_y + arm_len * .15), (x + arm_len * .6, shoulder_y + arm_len * .15)
+        left, right = (x - arm_len * .58, shoulder_y + arm_len * .20), (x + arm_len * .58, shoulder_y + arm_len * .20)
     elif action in ("fall", "trip"):
-        left, right = (x - arm_len, shoulder_y - arm_len * .15), (x + arm_len, shoulder_y + arm_len * .15)
+        left, right = (x - arm_len * .95, shoulder_y - arm_len * .12), (x + arm_len * .95, shoulder_y + arm_len * .12)
     else:
-        swing = math.sin(t * 7) * arm_len * .35 if movement else math.sin(t * 2) * arm_len * .05
-        left, right = (x - arm_len * .6 + swing, shoulder_y + arm_len * .7), (x + arm_len * .6 - swing, shoulder_y + arm_len * .7)
-    draw.line((x, shoulder_y + 8, *left), fill=skin, width=line, joint="curve")
-    draw.line((x, shoulder_y + 8, *right), fill=skin, width=line, joint="curve")
-    # hands
-    for hx, hy in (left, right):
-        rr = max(4, line // 2)
-        draw.ellipse((hx - rr, hy - rr, hx + rr, hy + rr), fill=skin, outline=dark, width=1)
-    # head, hair and facial expression
-    hy = shoulder_y - head - int(H * .014)
-    draw.ellipse((x - head, hy - head, x + head, hy + head), fill=skin, outline=dark, width=line)
+        swing = math.sin(t * 7) * arm_len * .30 if movement else math.sin(t * 2) * arm_len * .045
+        left = (x - arm_len * .58 + swing, shoulder_y + arm_len * .68)
+        right = (x + arm_len * .58 - swing, shoulder_y + arm_len * .68)
+    shoulder_points = [(x - int(shoulder_half * .80), shoulder_y + int(H * .020)),
+                       (x + int(shoulder_half * .80), shoulder_y + int(H * .020))]
+    for idx, endpoint in enumerate((left, right)):
+        sx, sy = shoulder_points[idx]
+        ex, ey = endpoint
+        elbow = (int(sx * .45 + ex * .55), int(sy * .48 + ey * .52))
+        draw.line((sx, sy, elbow[0], elbow[1], ex, ey), fill=ink, width=sleeve + 4, joint="curve")
+        draw.line((sx, sy, elbow[0], elbow[1], ex, ey), fill=outfit, width=sleeve, joint="curve")
+        draw.ellipse((elbow[0] - sleeve // 2, elbow[1] - sleeve // 2,
+                      elbow[0] + sleeve // 2, elbow[1] + sleeve // 2), fill=outfit, outline=ink, width=max(1, line // 2))
+        hand_r = max(4, int(H * .008 * scale))
+        draw.ellipse((ex - hand_r, ey - hand_r, ex + hand_r, ey + hand_r), fill=hand_fill, outline=ink, width=max(1, line // 3))
+        # Tiny thumb stroke keeps hands from looking like dots.
+        draw.line((ex, ey, ex + facing * hand_r, ey - hand_r // 2), fill=ink, width=max(1, line // 3))
+
+    # Fixed round white head, slightly offset features and near/far eyes create
+    # a consistent three-quarter view instead of a flat emoji-like front view.
+    face_x = int(x + facing * head * .055)
+    head_y = int(shoulder_y - head - H * .012)
+    draw.ellipse((face_x - head, head_y - head, face_x + head, head_y + head),
+                 fill=face_fill, outline=ink, width=max(4, line))
     hair = c.get("hair", "short")
     if hair == "messy":
-        for i in range(5):
-            hx = x - head + int(i * head / 2)
-            draw.polygon([(hx, hy - head // 2), (hx + head // 4, hy - head - int(head * .25)), (hx + head // 2, hy - head // 2)], fill="#17191f")
+        points = [
+            (face_x - int(head * .92), head_y - int(head * .34)),
+            (face_x - int(head * .82), head_y - int(head * .92)),
+            (face_x - int(head * .48), head_y - int(head * .68)),
+            (face_x - int(head * .26), head_y - int(head * 1.12)),
+            (face_x + int(head * .02), head_y - int(head * .72)),
+            (face_x + int(head * .32), head_y - int(head * 1.04)),
+            (face_x + int(head * .53), head_y - int(head * .66)),
+            (face_x + int(head * .90), head_y - int(head * .43)),
+            (face_x + int(head * .72), head_y - int(head * .08)),
+            (face_x - int(head * .72), head_y - int(head * .05)),
+        ]
+        draw.polygon(points, fill="#202126", outline=ink)
     elif hair == "neat":
-        draw.pieslice((x - head, hy - head - int(head * .12), x + head, hy + head // 2), 180, 355, fill="#1c2026")
+        draw.pieslice((face_x - head, head_y - head - int(head * .10),
+                       face_x + head, head_y + int(head * .50)), 180, 355, fill="#202126", outline=ink)
+        draw.line((face_x - int(head * .72), head_y - int(head * .60),
+                   face_x + int(head * .30), head_y - int(head * .83)), fill="#34363c", width=max(2, line // 2))
     else:
-        draw.pieslice((x - head, hy - head, x + head, hy + head // 2), 180, 360, fill="#202126")
-    eye_y, eye_dx = hy - int(head * .02), int(head * .34)
-    eye_r = max(3, int(head * .095))
-    for ex in (x - eye_dx, x + eye_dx):
-        draw.ellipse((ex - eye_r, eye_y - eye_r, ex + eye_r, eye_y + eye_r), fill="#ffffff")
-        draw.ellipse((ex - 2, eye_y - 2, ex + 3, eye_y + 3), fill=dark)
-    if action in ("panic", "react", "surrender"):
-        draw.ellipse((x - head * .19, hy + head * .23, x + head * .19, hy + head * .58), fill="#5b2525")
-    elif action in ("celebrate", "wave"):
-        draw.arc((x - head * .32, hy + head * .15, x + head * .32, hy + head * .62), 5, 175, fill=dark, width=max(2, line // 2))
-    else:
-        draw.arc((x - head * .32, hy + head * .17, x + head * .32, hy + head * .58), 5, 175, fill=dark, width=max(2, line // 2))
-    # distinctive badge and name
-    draw.ellipse((x - line, shoulder_y + int(torso * .34), x + line, shoulder_y + int(torso * .34) + line * 2), fill=accent, outline=dark, width=1)
-    if name_tag:
-        centered(draw, (x, y + int(limb * .94) + int(H * .02)), c.get("name", c["id"]), font(int(H * .015), True), "#ffffff", stroke_width=2)
+        draw.pieslice((face_x - head, head_y - head, face_x + head, head_y + int(head * .38)),
+                      180, 360, fill="#202126", outline=ink)
 
+    # Expression library. The head silhouette and feature placement remain fixed.
+    surprised = action in ("panic", "react", "surrender")
+    happy = action in ("celebrate", "wave")
+    angry = action in ("aim", "run", "dash")
+    sad = action in ("fall", "trip")
+    suspicious = action == "sneak"
+    eye_y = head_y - int(head * .02)
+    near_x = face_x + facing * int(head * .30)
+    far_x = face_x - facing * int(head * .29)
+    eye_positions = [(far_x, .72), (near_x, 1.0)]
+    for ex, eye_scale in eye_positions:
+        er = max(3, int(head * .095 * eye_scale))
+        if surprised:
+            er = max(4, int(er * 1.22))
+        ey = eye_y + (int(head * .015) if eye_scale < .8 else 0)
+        draw.ellipse((ex - er * 1.05, ey - er * 1.25, ex + er * 1.05, ey + er * 1.25),
+                     fill="#ffffff", outline=ink, width=max(1, line // 3))
+        pupil_x = ex + facing * max(1, int(head * .018))
+        draw.ellipse((pupil_x - max(2, er // 2), ey - max(2, er // 2),
+                      pupil_x + max(2, er // 2), ey + max(2, er // 2)), fill=ink)
+        brow_y = ey - int(head * (.14 if angry or suspicious else .11))
+        if angry:
+            draw.line((ex - er * 1.4, brow_y - facing * int(head * .045),
+                       ex + er * 1.3, brow_y + facing * int(head * .045)), fill=ink, width=max(2, line // 2))
+        elif suspicious:
+            draw.line((ex - er, brow_y, ex + er, brow_y - int(head * .035)), fill=ink, width=max(2, line // 2))
+        elif surprised:
+            draw.line((ex - er, brow_y - int(head * .025), ex + er, brow_y - int(head * .025)), fill=ink, width=max(2, line // 2))
+    # Small angled nose mark reinforces the side turn without changing identity.
+    nose_x = face_x + facing * int(head * .13)
+    draw.line((nose_x, head_y + int(head * .02), nose_x + facing * int(head * .10),
+               head_y + int(head * .13)), fill="#b4a99b", width=max(2, line // 3))
+    mouth_box = (face_x - int(head * .28), head_y + int(head * .20),
+                 face_x + int(head * .32), head_y + int(head * .61))
+    if surprised:
+        draw.ellipse((face_x + facing * int(head * .03) - int(head * .10), head_y + int(head * .25),
+                      face_x + facing * int(head * .03) + int(head * .10), head_y + int(head * .49)),
+                     fill="#5b2525", outline=ink, width=max(1, line // 3))
+    elif happy:
+        draw.arc(mouth_box, 8, 172, fill=ink, width=max(3, line // 2))
+    elif angry:
+        draw.line((face_x - int(head * .20), head_y + int(head * .43),
+                   face_x + int(head * .22), head_y + int(head * .34)), fill=ink, width=max(3, line // 2))
+    elif sad:
+        draw.arc((mouth_box[0], mouth_box[1] + int(head * .12),
+                  mouth_box[2], mouth_box[3]), 190, 350, fill=ink, width=max(3, line // 2))
+    elif suspicious:
+        draw.line((face_x - int(head * .16), head_y + int(head * .39),
+                   face_x + int(head * .20), head_y + int(head * .36)), fill=ink, width=max(3, line // 2))
+    else:
+        draw.arc(mouth_box, 195, 345, fill=ink, width=max(3, line // 2))
+
+    # A subtle shoulder seam and cuff details finish the costume.
+    for ex, ey in (left, right):
+        cuff = max(2, line // 2)
+        draw.ellipse((ex - cuff, ey - cuff, ex + cuff, ey + cuff), fill=outfit, outline=ink, width=1)
+    if name_tag:
+        centered(draw, (x, y + int(limb * .80) + int(H * .035)), c.get("name", c["id"]),
+                 font(int(H * .015), True), "#ffffff", stroke_width=2)
 
 def action_for(scene):
     requested = str(scene.get("motion", "")).lower()
