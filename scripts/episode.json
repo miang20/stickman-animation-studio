@@ -1,446 +1,103 @@
 {
-  "title": "The Impossible Plan — Episode 1",
+  "title": "NO MERCY FOR THE PLAN — 60-SECOND TEST",
   "fps": 24,
-  "style": "colourful_2d_heist_comedy",
-  "notes": "Original fictional heist parody. Keep character IDs and their visual definitions stable across episodes.",
+  "style": "illustrated_edgy_heist_thriller",
+  "notes": "Original fictional heist thriller test. Hard-edged dialogue, intimidating posture, sharp reactions, and cinematic staging. Keep it fictional and non-graphic.",
   "characters": [
     {
       "id": "professor",
-      "name": "The Planner",
+      "name": "THE PLANNER",
       "head": "round",
       "hair": "neat",
-      "outfit": "#b83232",
+      "outfit": "#20242c",
       "accent": "#f1c6a8",
-      "role": "mastermind"
+      "role": "mastermind",
+      "pants": "#11151c",
+      "shoes": "#080a0d"
     },
     {
       "id": "rookie",
-      "name": "Rookie",
+      "name": "GHOST",
       "head": "round",
       "hair": "messy",
-      "outfit": "#e0a13a",
-      "accent": "#f4c9a5",
-      "role": "comic-relief"
+      "outfit": "#8f252b",
+      "accent": "#e8b99a",
+      "role": "enforcer",
+      "pants": "#20232a",
+      "shoes": "#080a0d"
     },
     {
       "id": "guard",
-      "name": "Captain Vale",
+      "name": "VALE",
       "head": "round",
       "hair": "short",
       "outfit": "#34495e",
-      "accent": "#e6b995",
-      "role": "security"
-    },
-    {
-      "id": "hacker",
-      "name": "Pixel",
-      "head": "round",
-      "hair": "messy",
-      "outfit": "#268c87",
-      "accent": "#eac09b",
-      "role": "tech-expert"
+      "accent": "#d9b08c",
+      "role": "security",
+      "pants": "#18212d",
+      "shoes": "#090c11"
     }
   ],
   "scenes": [
     {
-      "id": "scene_01",
+      "id": "edge_01",
       "setting": "safehouse",
       "duration": 10,
-      "characters": [
-        "professor",
-        "rookie"
-      ],
-      "action": "The Planner taps a wall map and reveals a plan with too many arrows.",
-      "dialogue": "Planner: Tonight, we perform the cleanest operation in history. Rookie: Great. Is there a checklist?",
-      "caption": "THE IMPOSSIBLE PLAN",
-      "motion": "auto"
+      "characters": ["professor", "rookie"],
+      "action": "The Planner leans over the table, plants both hands on the map, then slowly points at the target. Ghost stands rigid with clenched fists and a cold stare.",
+      "dialogue": "Planner: No speeches. No heroes. We go in, we take control, we disappear. Ghost: And if someone gets in our way? Planner: Then they learn to move.",
+      "caption": "TONIGHT, THE RULES CHANGE",
+      "motion": "point"
     },
     {
-      "id": "scene_02",
-      "setting": "safehouse",
-      "duration": 10,
-      "characters": [
-        "professor",
-        "rookie"
-      ],
-      "action": "Rookie proudly turns the map upside down and points at the ceiling.",
-      "dialogue": "Planner: Why is the map upside down? Rookie: The guards will never expect it.",
-      "caption": "GENIUS OR TOTAL DISASTER?",
-      "motion": "auto"
-    },
-    {
-      "id": "scene_03",
+      "id": "edge_02",
       "setting": "control_room",
       "duration": 10,
-      "characters": [
-        "hacker",
-        "professor"
-      ],
-      "action": "Pixel lights up a monitor wall and types a dramatic password.",
-      "dialogue": "Pixel: I secured the system with a password nobody can guess. Planner: What is it? Pixel: Password123.",
-      "caption": "CYBERSECURITY: QUESTIONABLE",
-      "motion": "auto"
+      "characters": ["rookie", "guard"],
+      "action": "Ghost turns sharply toward the security monitor, shoulders squared and chin lowered. Vale steps forward with a hard stare and points directly at Ghost.",
+      "dialogue": "Captain Vale: Hands where I can see them. Ghost: You first. Captain Vale: You think you're in charge? Ghost: No. I think you're late.",
+      "caption": "WRONG ROOM. WRONG NIGHT.",
+      "motion": "aim"
     },
     {
-      "id": "scene_04",
-      "setting": "safehouse",
-      "duration": 10,
-      "characters": [
-        "professor",
-        "rookie",
-        "hacker"
-      ],
-      "action": "The team studies a tiny floor plan while Rookie holds it backwards.",
-      "dialogue": "Planner: Memorise every corridor. Rookie: I have memorised the back of the paper.",
-      "caption": "DETAILS MATTER",
-      "motion": "auto"
-    },
-    {
-      "id": "scene_05",
-      "setting": "van",
-      "duration": 10,
-      "characters": [
-        "rookie",
-        "hacker"
-      ],
-      "action": "Rookie climbs into a delivery van and waves at an imaginary audience.",
-      "dialogue": "Pixel: You are supposed to look ordinary. Rookie: I am being aggressively ordinary.",
-      "caption": "STEALTH MODE: ACTIVATED",
-      "motion": "auto"
-    },
-    {
-      "id": "scene_06",
-      "setting": "street",
-      "duration": 10,
-      "characters": [
-        "rookie",
-        "guard"
-      ],
-      "action": "Rookie tiptoes past Captain Vale, then waves with both hands.",
-      "dialogue": "Captain Vale: Do I know you? Rookie: Not yet. Nice to meet you.",
-      "caption": "INVISIBLE. BASICALLY.",
-      "motion": "auto"
-    },
-    {
-      "id": "scene_07",
-      "setting": "safehouse",
-      "duration": 10,
-      "characters": [
-        "professor",
-        "rookie"
-      ],
-      "action": "The Planner hands Rookie a tiny earpiece that is visibly too large.",
-      "dialogue": "Planner: Follow my instructions exactly. Rookie: Can you repeat that in simpler instructions?",
-      "caption": "ONE JOB. ONE EARPIECE.",
-      "motion": "auto"
-    },
-    {
-      "id": "scene_08",
-      "setting": "street",
-      "duration": 10,
-      "characters": [
-        "rookie",
-        "guard"
-      ],
-      "action": "Rookie sneaks toward the entrance but stops to tie a shoelace for ages.",
-      "dialogue": "Captain Vale: Why are you crouching? Rookie: The floor looked suspicious.",
-      "caption": "SUSPICIOUS FLOOR DETECTED",
-      "motion": "auto"
-    },
-    {
-      "id": "scene_09",
-      "setting": "bank",
-      "duration": 10,
-      "characters": [
-        "professor",
-        "rookie",
-        "guard"
-      ],
-      "action": "The team arrives at a grand fictional bank entrance. Rookie presses the doorbell.",
-      "dialogue": "Planner: That was not the signal. Rookie: But it made a very confident beep.",
-      "caption": "THE PLAN HAS LEFT THE CHAT",
-      "motion": "auto"
-    },
-    {
-      "id": "scene_10",
-      "setting": "hall",
-      "duration": 10,
-      "characters": [
-        "rookie",
-        "guard"
-      ],
-      "action": "Captain Vale checks a clipboard while Rookie pretends to be a delivery worker.",
-      "dialogue": "Captain Vale: Delivery for whom? Rookie: For... the building. Everyone in it.",
-      "caption": "DELIVERY: ONE AWKWARD MOMENT",
-      "motion": "auto"
-    },
-    {
-      "id": "scene_11",
-      "setting": "control_room",
-      "duration": 10,
-      "characters": [
-        "hacker",
-        "professor"
-      ],
-      "action": "Pixel watches a countdown timer and spins dramatically in a chair.",
-      "dialogue": "Pixel: I have ten minutes to open the route. Planner: We have nine. Pixel: Then I will type faster.",
-      "caption": "THE CLOCK IS TICKING",
-      "motion": "auto"
-    },
-    {
-      "id": "scene_12",
-      "setting": "bank",
-      "duration": 10,
-      "characters": [
-        "rookie",
-        "guard"
-      ],
-      "action": "Rookie presents an empty clipboard as if it contains important paperwork.",
-      "dialogue": "Captain Vale: There is nothing on this page. Rookie: It is a minimalist document.",
-      "caption": "PAPERWORK IS POWER",
-      "motion": "auto"
-    },
-    {
-      "id": "scene_13",
+      "id": "edge_03",
       "setting": "vault",
       "duration": 10,
-      "characters": [
-        "professor",
-        "hacker"
-      ],
-      "action": "The Planner and Pixel face a giant vault wheel and study its markings.",
-      "dialogue": "Planner: Quiet, careful, precise. Pixel: I brought a very loud wrench.",
-      "caption": "THE VAULT PROBLEM",
-      "motion": "auto"
+      "characters": ["professor", "guard"],
+      "action": "The Planner stays unnervingly still beside the vault, head slightly tilted. Vale takes one tense step back, shoulders raised, then freezes.",
+      "dialogue": "Captain Vale: You have nowhere to go. Planner: That's what people say when they have run out of ideas. Captain Vale: You're bluffing. Planner: Then stop looking at the exit.",
+      "caption": "THE SILENCE IS THE THREAT",
+      "motion": "panic"
     },
     {
-      "id": "scene_14",
-      "setting": "vault",
-      "duration": 10,
-      "characters": [
-        "rookie",
-        "professor"
-      ],
-      "action": "Rookie gently knocks on the vault door and waits for an answer.",
-      "dialogue": "Rookie: Hello? Is anybody in there? Planner: It is a vault, not a neighbour.",
-      "caption": "KNOCK KNOCK. NO REPLY.",
-      "motion": "auto"
-    },
-    {
-      "id": "scene_15",
-      "setting": "control_room",
-      "duration": 10,
-      "characters": [
-        "hacker",
-        "rookie"
-      ],
-      "action": "Pixel points at a blinking red button while Rookie leans closer.",
-      "dialogue": "Pixel: Whatever you do, do not press the red button. Rookie: Which red button?",
-      "caption": "NEVER SAY THAT TO ROOKIE",
-      "motion": "auto"
-    },
-    {
-      "id": "scene_16",
-      "setting": "control_room",
-      "duration": 10,
-      "characters": [
-        "hacker",
-        "rookie"
-      ],
-      "action": "A warning light flashes after Rookie presses the red button with one finger.",
-      "dialogue": "Pixel: You pressed it! Rookie: I was checking if it was real.",
-      "caption": "ALARM: ROOKIE CONFIRMED",
-      "motion": "auto"
-    },
-    {
-      "id": "scene_17",
-      "setting": "police",
-      "duration": 10,
-      "characters": [
-        "guard",
-        "rookie"
-      ],
-      "action": "Captain Vale hears an alarm and turns sharply toward the corridor.",
-      "dialogue": "Captain Vale: Why is the alarm going off? Rookie: It is celebrating our teamwork.",
-      "caption": "THE BUILDING IS NOT CELEBRATING",
-      "motion": "auto"
-    },
-    {
-      "id": "scene_18",
-      "setting": "hall",
-      "duration": 10,
-      "characters": [
-        "professor",
-        "rookie",
-        "guard"
-      ],
-      "action": "The Planner calmly steps into view while Rookie tries to hide behind a tiny plant.",
-      "dialogue": "Planner: We can explain everything. Captain Vale: Start with the plant.",
-      "caption": "HIDE AND SEEK: FAILED",
-      "motion": "auto"
-    },
-    {
-      "id": "scene_19",
+      "id": "edge_04",
       "setting": "street",
       "duration": 10,
-      "characters": [
-        "professor",
-        "rookie",
-        "guard"
-      ],
-      "action": "The team makes a fast dash down the street as Captain Vale follows.",
-      "dialogue": "Planner: Move, move, move! Rookie: I am moving emotionally and physically!",
-      "caption": "PLAN B: RUN",
-      "motion": "auto"
+      "characters": ["rookie", "guard"],
+      "action": "Ghost bursts into a sharp sprint, twists back over one shoulder, and throws a defiant hand gesture. Vale lunges forward to chase, body pitched aggressively forward.",
+      "dialogue": "Captain Vale: Stop! Ghost: Make me. Captain Vale: You cannot outrun the whole city. Ghost: I only need to outrun you.",
+      "caption": "DON'T BLINK",
+      "motion": "run"
     },
     {
-      "id": "scene_20",
-      "setting": "street",
+      "id": "edge_05",
+      "setting": "safehouse",
       "duration": 10,
-      "characters": [
-        "rookie",
-        "guard"
-      ],
-      "action": "Rookie slips on a loose paper and lands in a harmless cartoon pose.",
-      "dialogue": "Captain Vale: Stop right there! Rookie: I would, but the ground has stopped me.",
-      "caption": "THE GREAT GETAWAY WOBBLE",
-      "motion": "auto"
+      "characters": ["professor", "rookie"],
+      "action": "Ghost slams a palm onto the table and leans in, jaw set. The Planner does not flinch; he slowly raises one finger and holds eye contact.",
+      "dialogue": "Ghost: We had one job. One. Planner: Lower your voice. Ghost: Give me one reason. Planner: Because the next decision is the one that decides who walks out.",
+      "caption": "ANGER IS NOT A PLAN",
+      "motion": "aim"
     },
     {
-      "id": "scene_21",
-      "setting": "van",
-      "duration": 10,
-      "characters": [
-        "professor",
-        "rookie",
-        "hacker"
-      ],
-      "action": "The team piles into the van, but the side door refuses to close.",
-      "dialogue": "Pixel: Is everyone in? Rookie: My elbow is still in the city.",
-      "caption": "EXIT STRATEGY: NEEDS WORK",
-      "motion": "auto"
-    },
-    {
-      "id": "scene_22",
-      "setting": "van",
-      "duration": 10,
-      "characters": [
-        "professor",
-        "hacker"
-      ],
-      "action": "Pixel studies a navigation screen that shows a route shaped like a question mark.",
-      "dialogue": "Planner: Where does that road lead? Pixel: Technically, toward a road.",
-      "caption": "GPS: GOOD LUCK",
-      "motion": "auto"
-    },
-    {
-      "id": "scene_23",
+      "id": "edge_06",
       "setting": "roof",
       "duration": 10,
-      "characters": [
-        "professor",
-        "rookie"
-      ],
-      "action": "The Planner and Rookie pause on a rooftop and watch distant city lights.",
-      "dialogue": "Planner: We need to think clearly. Rookie: I have been thinking loudly all day.",
-      "caption": "A MOMENT OF REGRET",
-      "motion": "auto"
-    },
-    {
-      "id": "scene_24",
-      "setting": "roof",
-      "duration": 10,
-      "characters": [
-        "rookie",
-        "hacker"
-      ],
-      "action": "Pixel arrives holding a snack bag while Rookie gives a dramatic thumbs-up.",
-      "dialogue": "Pixel: I saved the most important supplies. Rookie: Snacks? Pixel: Exactly.",
-      "caption": "PRIORITIES RESTORED",
-      "motion": "auto"
-    },
-    {
-      "id": "scene_25",
-      "setting": "safehouse",
-      "duration": 10,
-      "characters": [
-        "professor",
-        "hacker",
-        "rookie"
-      ],
-      "action": "Back at the safehouse, the team reviews a report full of red circles.",
-      "dialogue": "Planner: The plan failed at step one. Rookie: So step two is still fresh!",
-      "caption": "POST-MISSION REVIEW",
-      "motion": "auto"
-    },
-    {
-      "id": "scene_26",
-      "setting": "safehouse",
-      "duration": 10,
-      "characters": [
-        "professor",
-        "rookie"
-      ],
-      "action": "The Planner draws a new arrow on the map while Rookie watches carefully.",
-      "dialogue": "Planner: Next time, listen before acting. Rookie: I can do one of those things.",
-      "caption": "LESSONS WERE ALMOST LEARNED",
-      "motion": "auto"
-    },
-    {
-      "id": "scene_27",
-      "setting": "control_room",
-      "duration": 10,
-      "characters": [
-        "hacker",
-        "professor"
-      ],
-      "action": "Pixel reveals a tiny backup plan hidden behind a monitor.",
-      "dialogue": "Pixel: Good news, I prepared a backup. Planner: Is it better? Pixel: It has fewer buttons.",
-      "caption": "BACKUP PLAN: SLIGHTLY BETTER",
-      "motion": "auto"
-    },
-    {
-      "id": "scene_28",
-      "setting": "hall",
-      "duration": 10,
-      "characters": [
-        "guard",
-        "professor"
-      ],
-      "action": "Captain Vale arrives at the safehouse doorway holding the team's upside-down map.",
-      "dialogue": "Captain Vale: You dropped this. Planner: You followed us here? Captain Vale: The map had your address.",
-      "caption": "THE MAP BETRAYED EVERYONE",
-      "motion": "auto"
-    },
-    {
-      "id": "scene_29",
-      "setting": "safehouse",
-      "duration": 10,
-      "characters": [
-        "professor",
-        "rookie",
-        "guard",
-        "hacker"
-      ],
-      "action": "Everyone sits around the table while Rookie raises a hand to ask a question.",
-      "dialogue": "Rookie: Did we win? Captain Vale: Nobody won. Pixel: But we learned about passwords.",
-      "caption": "THE MOST CONFUSING TEAM-UP",
-      "motion": "auto"
-    },
-    {
-      "id": "scene_30",
-      "setting": "safehouse",
-      "duration": 10,
-      "characters": [
-        "professor",
-        "rookie",
-        "guard",
-        "hacker"
-      ],
-      "action": "The team poses for a group photo as the Planner quietly turns the map the right way up.",
-      "dialogue": "Planner: Tomorrow, we start again. Rookie: Upside down? Planner: Absolutely not.",
-      "caption": "TO BE CONTINUED... MAYBE",
-      "motion": "auto"
+      "characters": ["professor", "rookie", "guard"],
+      "action": "The Planner faces the skyline with a calm, squared stance. Ghost turns toward the camera with a hard, unblinking stare while Vale stands behind them, tense and ready to move.",
+      "dialogue": "Captain Vale: This ends now. Planner: Everything ends. The question is who gets to choose. Ghost: Then choose carefully. Planner: I already did.",
+      "caption": "THIS WAS ONLY THE FIRST MOVE",
+      "motion": "sneak"
     }
   ]
 }
