@@ -566,6 +566,8 @@ def main():
     write_srt(scenes)
     audio = audio_track(scenes, seconds)
     render(data, scenes, audio)
+    shutil.rmtree(TMP, ignore_errors=True)
+    print("Temporary audio files cleaned up.")
 
 
 if __name__ == "__main__":
