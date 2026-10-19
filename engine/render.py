@@ -515,6 +515,30 @@ def render(data, scenes, audio_path):
     print(f"Rendered: {output} ({output.stat().st_size:,} bytes, {total:.1f}s, {W}x{H}@{FPS})")
 
 
+def srt_timestamp(seconds):
+    milliseconds = int(round(max(0.0, seconds) * 1000))
+    hours, rem = divmod(milliseconds, 3_600_000)
+    minutes, rem = divmod(rem, 60_000)
+    whole_seconds, ms = divmod(rem, 1000)
+    return f"{hours:02d}:{minutes:02d}:{whole_seconds:02d},{ms:03d}"
+
+
+def write_srt(scenes):
+    """Export scene-timed captions as a phone-editable SRT sidecar."""
+    OUT.mkdir(parents=True, exist_ok=True)
+    cursor = 0.0
+    entries = []
+    for index, scene in enumerate(scenes, 1):
+        start = cursor
+        end = cursor + float(scene["duration"])
+        caption = str(scene.get("caption") or scene.get("action", "")).strip()
+        if caption:
+            entries.extend([str(index), f"{srt_timestamp(start)} --> {srt_timestamp(end)}", caption, ""])
+        cursor = end
+    (OUT / "captions.srt").write_text("\n".join(entries), encoding="utf-8")
+    print(f"Caption sidecar: {OUT / 'captions.srt'} ({len(entries) // 4} cues)")
+
+
 def validate(data):
     if not isinstance(data.get("characters"), list) or not data["characters"]:
         raise ValueError("Episode needs a non-empty characters list")
@@ -528,6 +552,9 @@ def validate(data):
             raise ValueError(f"Scene {i} has a non-positive duration")
         if not (scene.get("action") or scene.get("narration") or scene.get("dialogue")):
             raise ValueError(f"Scene {i} needs action, narration, or dialogue")
+        unknown = set(scene.get("characters", [])) - ids
+        if unknown:
+            raise ValueError(f"Scene {i} references unknown characters: {sorted(unknown)}")
 
 
 def main():
@@ -539,6 +566,7 @@ def main():
     seconds = DURATION_MINUTES * 60
     scenes = build_scenes(data, seconds)
     print(f"Preparing {len(scenes)} scenes for {DURATION_MINUTES} minute(s) at {W}x{H}, {FPS} fps")
+    write_srt(scenes)
     audio = audio_track(scenes, seconds)
     render(data, scenes, audio)
 
