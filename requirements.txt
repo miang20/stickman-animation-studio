@@ -1,2 +1,3 @@
-Pillow>=10.0,<13
-numpy>=1.26,<3
+# Reproducible free-runner dependencies (Python 3.11)
+Pillow==11.3.0
+numpy==2.2.6
