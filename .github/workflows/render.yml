@@ -75,7 +75,7 @@ jobs:
           test -s output/stickman-episode.mp4
           ffprobe -v error -show_entries format=duration,size -show_entries stream=codec_name,width,height,r_frame_rate -of default=noprint_wrappers=1 output/stickman-episode.mp4
 
-      - name: Upload MP4 artifact
+      - name: Upload MP4 and captions package
         uses: actions/upload-artifact@v4
         with:
           name: stickman-episode-package
