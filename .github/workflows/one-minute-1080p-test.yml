@@ -1,4 +1,4 @@
-name: One-minute 1080p af_heart smoke test
+name: Render - 1 Minute 1080p af_heart Test
 
 on:
   workflow_dispatch:
@@ -7,11 +7,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: stickman-1080p-smoke-test
+  group: stickman-1080p-render-test
   cancel-in-progress: false
 
 jobs:
-  smoke-test:
+  render-test:
     runs-on: ubuntu-latest
     timeout-minutes: 330
     steps:
