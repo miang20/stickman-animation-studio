@@ -22,6 +22,13 @@ FPS = 24
 W, H = (1920, 1080) if os.getenv("RESOLUTION", "720p") == "1080p" else (1280, 720)
 DURATION_MINUTES = max(1, min(8, int(os.getenv("DURATION_MINUTES", "5"))))
 VOICE_ON = os.getenv("VOICE", "on").lower() == "on"
+COLOR_THEME = os.getenv("CHARACTER_COLOR", "blue").lower()
+CHARACTER_COLORS = {
+    "blue": "#2588e8", "cyan": "#20c7d9", "red": "#e44747",
+    "green": "#2da66f", "purple": "#8855d9", "orange": "#f08a32",
+    "yellow": "#e8c33b", "pink": "#e65caa", "white": "#e8edf4",
+    "black": "#343943",
+}
 SR = 22050
 random.seed(2026)
 
@@ -79,85 +86,107 @@ def wrap_words(text, max_chars=34):
 
 
 def make_background(setting):
-    """Build each location once; reusing it avoids an expensive per-frame gradient."""
-    sky, floor, accent = PALETTES.get(setting, PALETTES["safehouse"])
-    top, bottom = rgb(sky), rgb(floor)
-    gradient = np.empty((H, W, 3), dtype=np.uint8)
-    for y in range(H):
-        f = y / max(1, H - 1)
-        gradient[y, :, :] = [int(top[k] * (1 - f) + bottom[k] * f) for k in range(3)]
-    im = Image.fromarray(gradient, "RGB")
+    """Clean, flat 2D cartoon environments with readable props and simple perspective."""
+    # Bright illustrated backgrounds rather than dark, cinematic gradients.
+    palettes = {
+        "safehouse": ("#f4eee2", "#d9c8ad", "#d8b66a"),
+        "bank": ("#eaf2f5", "#d8dfe1", "#d8b66a"),
+        "street": ("#e5f1fa", "#d7dce0", "#e4c56b"),
+        "police": ("#eaf1f6", "#d4dfe8", "#9fc7e5"),
+        "warehouse": ("#f0e9df", "#d2c2ae", "#c6a078"),
+        "roof": ("#e8f1f5", "#cfdde2", "#e4c56b"),
+        "vault": ("#e5eeeb", "#cbd8d4", "#9fc9bd"),
+        "control_room": ("#e9eef5", "#d0d9e4", "#9fc7e5"),
+        "van": ("#e8edf0", "#cdd5da", "#e4c56b"),
+        "hall": ("#f1eee7", "#d9d3c7", "#e4c56b"),
+    }
+    sky, floor, accent = palettes.get(setting, palettes["safehouse"])
+    im = Image.new("RGB", (W, H), sky)
     d = ImageDraw.Draw(im)
-    horizon = int(H * .70)
+    ink = "#30343a"
+    wall = "#faf8f2"
+    trim = "#8c969b"
+    horizon = int(H * .72)
 
+    # Simple room/building silhouette with bold outlines and clear scene identity.
     if setting in ("street", "roof", "police"):
-        bw = W // 9
-        for i in range(-1, 11):
-            x = i * bw
-            bh = int(H * (.18 + ((i * 37) % 7) / 35))
-            d.rectangle((x, horizon - bh, x + bw - 8, horizon), fill="#253348", outline="#172333", width=max(2, W // 500))
-            for wy in range(horizon - bh + 24, horizon - 16, max(22, H // 22)):
-                for wx in range(x + 15, x + bw - 15, max(22, W // 42)):
-                    d.rectangle((wx, wy, wx + 9, wy + 13), fill=accent)
-    elif setting == "bank":
-        d.rectangle((W * .12, H * .22, W * .88, horizon), fill="#e5e1d8", outline="#596575", width=5)
-        for x in np.linspace(W * .18, W * .82, 7):
-            d.polygon([(x - 18, H * .30), (x + 18, H * .30), (x + 24, horizon), (x - 24, horizon)], fill="#f7f3e9", outline="#66717d")
-        d.polygon([(W * .10, H * .23), (W * .5, H * .10), (W * .90, H * .23)], fill="#c9d0d7", outline="#66717d")
-        centered(d, (W * .5, H * .18), "CENTRAL RESERVE", font(int(H * .032), True), "#28364a")
-    elif setting in ("vault", "control_room"):
-        d.rectangle((W * .08, H * .16, W * .92, horizon), fill="#253b46", outline="#101923", width=5)
-        if setting == "vault":
-            d.ellipse((W * .35, H * .23, W * .65, H * .61), fill="#82949a", outline="#d4e0df", width=max(8, W // 100))
-            d.ellipse((W * .41, H * .29, W * .59, H * .55), fill="#354953", outline="#101923", width=5)
-            d.ellipse((W * .47, H * .35, W * .53, H * .49), fill="#9bb4b8", outline="#17232a", width=4)
+        d.rectangle((0, 0, W, horizon), fill=sky)
+        if setting == "roof":
+            d.rectangle((0, H * .12, W, H * .18), fill="#b8c8cf", outline=ink, width=max(2, W // 500))
+            d.rectangle((W * .08, H * .30, W * .92, H * .70), fill="#e7e7df", outline=ink, width=max(2, W // 500))
         else:
-            for i in range(6):
-                x = int(W * (.16 + i * .135))
-                d.rounded_rectangle((x, H * .24, x + W * .09, H * .47), radius=8, fill="#172337", outline=accent, width=3)
-                for j in range(3):
-                    d.line((x + 12, H * (.29 + j * .05), x + W * .075, H * (.29 + j * .05)), fill="#47768a", width=3)
+            bw = W // 8
+            for i in range(-1, 10):
+                x = i * bw
+                bh = int(H * (.24 + ((i * 37) % 5) / 24))
+                d.rectangle((x, horizon - bh, x + bw - 7, horizon), fill=("#c6d5dc" if i % 2 else "#b7cbd4"), outline=ink, width=max(2, W // 650))
+                for wy in range(horizon - bh + 20, horizon - 12, max(28, H // 18)):
+                    for wx in range(x + 14, x + bw - 15, max(28, W // 32)):
+                        d.rectangle((wx, wy, wx + 10, wy + 14), fill="#f7e6a9", outline="#8e9ba0", width=1)
+        if setting == "police":
+            d.rectangle((W * .68, H * .40, W * .88, H * .69), fill="#f8f8f3", outline=ink, width=4)
+            d.rectangle((W * .72, H * .45, W * .84, H * .53), fill="#9fc7e5", outline=ink, width=3)
     else:
-        d.rectangle((W * .05, H * .12, W * .95, horizon), fill="#354252", outline="#111a27", width=4)
-        d.line((W * .05, H * .28, W * .95, H * .28), fill="#566477", width=3)
+        d.rectangle((W * .035, H * .07, W * .965, horizon), fill=wall, outline=ink, width=max(3, W // 420))
+        # A few consistent wall lines make it read as a drawn set, not an empty gradient.
+        d.line((W * .04, H * .22, W * .96, H * .22), fill="#d5d0c5", width=max(2, W // 600))
         for x in (W * .22, W * .5, W * .78):
-            d.ellipse((x - 30, H * .14, x + 30, H * .17), fill="#ffe7a6")
-            d.line((x, H * .17, x, H * .27), fill="#8d9aa8", width=3)
-        if setting == "safehouse":
-            bx, by, bw, bh = int(W * .58), int(H * .20), int(W * .32), int(H * .34)
-            d.rounded_rectangle((bx, by, bx + bw, by + bh), radius=12, fill="#e4ddc9", outline="#151c26", width=5)
-            for j in range(5):
-                x1 = bx + 25 + j * bw // 5
-                d.line((x1, by + 25, x1 + bw // 6, by + bh - 25), fill="#a5a18f", width=3)
-            for j in range(4):
-                y = by + 35 + j * bh // 4
-                d.line((bx + 20, y, bx + bw - 20, y + 15), fill="#b0a894", width=3)
-            for px, py in ((.66, .30), (.78, .39), (.84, .28), (.72, .47)):
-                x, y = int(W * px), int(H * py)
-                d.ellipse((x - 9, y - 9, x + 9, y + 9), fill="#cf4545", outline="#632b2b", width=2)
-        elif setting == "warehouse":
-            for x in range(int(W * .12), int(W * .9), int(W * .2)):
-                d.rectangle((x, H * .39, x + W * .12, horizon), fill="#7d6852", outline="#332d2c", width=4)
-                d.line((x, H * .45, x + W * .12, H * .45), fill="#b49a72", width=3)
-    # perspective floor
-    d.polygon([(0, horizon), (W, horizon), (W, H), (0, H)], fill="#303744")
-    for x in range(0, W + 1, max(80, W // 10)):
-        d.line((W * .5, horizon, x, H), fill="#3b4552", width=2)
-    d.line((0, horizon, W, horizon), fill="#111923", width=5)
-    # Foreground props create more visual variety across scene types.
-    if setting in ("safehouse", "warehouse", "van"):
-        for x in (W * .12, W * .84):
-            d.rectangle((x, H * .57, x + W * .08, H * .70), fill="#6b5848", outline="#211f25", width=4)
-            d.line((x, H * .62, x + W * .08, H * .62), fill="#9a8061", width=3)
-    return im, accent
+            d.ellipse((x - W * .012, H * .105, x + W * .012, H * .125), fill="#f4d98c", outline=ink, width=2)
+        if setting == "bank":
+            d.rectangle((W * .12, H * .28, W * .88, H * .69), fill="#e3e8e5", outline=ink, width=4)
+            for x in np.linspace(W * .18, W * .82, 6):
+                d.rectangle((x, H * .32, x + W * .045, H * .67), fill="#f7f5ee", outline="#9aa5a5", width=3)
+            d.rectangle((W * .39, H * .43, W * .61, H * .69), fill="#c5d8dc", outline=ink, width=4)
+            centered(d, (W * .5, H * .25), "BANK", font(int(H * .035), True), ink)
+        elif setting == "vault":
+            d.rectangle((W * .28, H * .24, W * .72, H * .69), fill="#b9c9c8", outline=ink, width=5)
+            d.ellipse((W * .38, H * .31, W * .62, H * .63), fill="#e6ece8", outline=ink, width=5)
+            d.ellipse((W * .45, H * .38, W * .55, H * .56), fill="#b9c9c8", outline=ink, width=4)
+            d.line((W * .5, H * .39, W * .5, H * .55), fill=ink, width=4)
+            d.line((W * .45, H * .47, W * .55, H * .47), fill=ink, width=4)
+        elif setting == "control_room":
+            for i in range(5):
+                x = int(W * (.12 + i * .155))
+                d.rectangle((x, H * .28, x + W * .105, H * .48), fill="#d7e5e8", outline=ink, width=3)
+                d.line((x + 10, H * .34, x + W * .095, H * .34), fill="#7faeb7", width=3)
+                d.line((x + 10, H * .40, x + W * .075, H * .40), fill="#7faeb7", width=3)
+        elif setting in ("safehouse", "warehouse"):
+            for x in (W * .12, W * .76):
+                d.rectangle((x, H * .38, x + W * .12, H * .69), fill="#c8b18f", outline=ink, width=4)
+                d.line((x, H * .48, x + W * .12, H * .48), fill="#8c7559", width=3)
+                d.line((x, H * .58, x + W * .12, H * .58), fill="#8c7559", width=3)
+            if setting == "safehouse":
+                d.rectangle((W * .37, H * .34, W * .63, H * .55), fill="#d9e6eb", outline=ink, width=4)
+                d.line((W * .5, H * .34, W * .5, H * .55), fill=trim, width=3)
+                d.line((W * .37, H * .445, W * .63, H * .445), fill=trim, width=3)
+        elif setting == "van":
+            d.rectangle((W * .18, H * .39, W * .78, H * .65), fill="#e7e9e6", outline=ink, width=5)
+            d.rectangle((W * .61, H * .43, W * .74, H * .54), fill="#b9d5df", outline=ink, width=3)
+            for x in (W * .30, W * .67):
+                d.ellipse((x - W * .035, H * .61, x + W * .035, H * .72), fill="#555b60", outline=ink, width=3)
+        else:
+            d.rectangle((W * .18, H * .27, W * .34, H * .69), fill="#d7e4e7", outline=ink, width=4)
+            d.rectangle((W * .66, H * .27, W * .82, H * .69), fill="#d7e4e7", outline=ink, width=4)
 
+    # Flat floor and restrained perspective lines; no dramatic lighting or HUD graphics.
+    d.rectangle((0, horizon, W, H), fill=floor)
+    d.line((0, horizon, W, horizon), fill=ink, width=max(3, W // 420))
+    for x in range(0, W + 1, max(120, W // 8)):
+        d.line((W * .5, horizon, x, H), fill="#c2b9aa", width=max(1, W // 1000))
+    if setting in ("safehouse", "warehouse", "hall"):
+        for x in (W * .08, W * .84):
+            d.rectangle((x, H * .61, x + W * .08, H * .73), fill="#c8b18f", outline=ink, width=3)
+            d.line((x, H * .66, x + W * .08, H * .66), fill="#8c7559", width=2)
+    return im, accent
 
 def draw_character(draw, c, x, ground, t, scale=1.0, action="idle", facing=1, accent="#f2c14e", name_tag=True):
     head = int(H * .060 * scale)
     torso = int(H * .155 * scale)
     limb = int(H * .12 * scale)
     line = max(4, int(H * .007 * scale))
-    skin, outfit = c.get("accent", "#f0c6a2"), c.get("outfit", "#c83c3c")
+    skin = c.get("accent", "#f0c6a2")
+    # One workflow colour selector recolours every recurring character while preserving identity.
+    outfit = CHARACTER_COLORS.get(COLOR_THEME, CHARACTER_COLORS["blue"])
     dark = "#141923"
     movement = {"walk": 1.0, "sneak": .6, "run": 1.7, "dash": 2.0}.get(action, 0.0)
     bob = int(math.sin(t * (9 if movement else 2.5)) * H * (.010 if movement else .003))
@@ -174,8 +203,8 @@ def draw_character(draw, c, x, ground, t, scale=1.0, action="idle", facing=1, ac
     leg2 = -phase
     if action in ("fall", "trip"):
         leg1, leg2 = -limb * .35, limb * .35
-    draw.line((x, hip_y, x - facing * limb * .34 + leg1, y + limb * .72), fill=dark, width=line, joint="curve")
-    draw.line((x, hip_y, x + facing * limb * .34 + leg2, y + limb * .72), fill=dark, width=line, joint="curve")
+    draw.line((x, hip_y, x - facing * limb * .34 + leg1, y + limb * .72), fill=outfit, width=line, joint="curve")
+    draw.line((x, hip_y, x + facing * limb * .34 + leg2, y + limb * .72), fill=outfit, width=line, joint="curve")
     draw.line((x - facing * limb * .34 + leg1, y + limb * .72, x - facing * limb * .34 + leg1 + facing * line * 2, y + limb * .72), fill="#0d1118", width=line)
     draw.line((x + facing * limb * .34 + leg2, y + limb * .72, x + facing * limb * .34 + leg2 + facing * line * 2, y + limb * .72), fill="#0d1118", width=line)
     # torso and costume details
@@ -199,24 +228,17 @@ def draw_character(draw, c, x, ground, t, scale=1.0, action="idle", facing=1, ac
     else:
         swing = math.sin(t * 7) * arm_len * .35 if movement else math.sin(t * 2) * arm_len * .05
         left, right = (x - arm_len * .6 + swing, shoulder_y + arm_len * .7), (x + arm_len * .6 - swing, shoulder_y + arm_len * .7)
-    draw.line((x, shoulder_y + 8, *left), fill=skin, width=line, joint="curve")
-    draw.line((x, shoulder_y + 8, *right), fill=skin, width=line, joint="curve")
+    draw.line((x, shoulder_y + 8, *left), fill=outfit, width=line, joint="curve")
+    draw.line((x, shoulder_y + 8, *right), fill=outfit, width=line, joint="curve")
     # hands
     for hx, hy in (left, right):
         rr = max(4, line // 2)
-        draw.ellipse((hx - rr, hy - rr, hx + rr, hy + rr), fill=skin, outline=dark, width=1)
-    # head, hair and facial expression
+        draw.ellipse((hx - rr, hy - rr, hx + rr, hy + rr), fill=outfit, outline=dark, width=1)
+    # Clean Henry-Stickmin-inspired cartoon language: round white head, bold dark outline,
+    # simple dot eyes, and clear mouth shapes. Keep the selected body colour unchanged.
     hy = shoulder_y - head - int(H * .014)
-    draw.ellipse((x - head, hy - head, x + head, hy + head), fill=skin, outline=dark, width=line)
-    hair = c.get("hair", "short")
-    if hair == "messy":
-        for i in range(5):
-            hx = x - head + int(i * head / 2)
-            draw.polygon([(hx, hy - head // 2), (hx + head // 4, hy - head - int(head * .25)), (hx + head // 2, hy - head // 2)], fill="#17191f")
-    elif hair == "neat":
-        draw.pieslice((x - head, hy - head - int(head * .12), x + head, hy + head // 2), 180, 355, fill="#1c2026")
-    else:
-        draw.pieslice((x - head, hy - head, x + head, hy + head // 2), 180, 360, fill="#202126")
+    draw.ellipse((x - head, hy - head, x + head, hy + head),
+                 fill="#fffdf8", outline="#20242a", width=max(line, 4))
     eye_y, eye_dx = hy - int(head * .02), int(head * .34)
     eye_r = max(3, int(head * .095))
     for ex in (x - eye_dx, x + eye_dx):
@@ -228,10 +250,10 @@ def draw_character(draw, c, x, ground, t, scale=1.0, action="idle", facing=1, ac
         draw.arc((x - head * .32, hy + head * .15, x + head * .32, hy + head * .62), 5, 175, fill=dark, width=max(2, line // 2))
     else:
         draw.arc((x - head * .32, hy + head * .17, x + head * .32, hy + head * .58), 5, 175, fill=dark, width=max(2, line // 2))
-    # distinctive badge and name
-    draw.ellipse((x - line, shoulder_y + int(torso * .34), x + line, shoulder_y + int(torso * .34) + line * 2), fill=accent, outline=dark, width=1)
-    if name_tag:
-        centered(draw, (x, y + int(limb * .94) + int(H * .02)), c.get("name", c["id"]), font(int(H * .015), True), "#ffffff", stroke_width=2)
+    # Restrained costume seam; no floating labels or badge-like symbols.
+    draw.line((x - line * 1.2, shoulder_y + int(torso * .36),
+               x + line * 1.2, shoulder_y + int(torso * .36)),
+              fill="#f2d9a0", width=max(2, line // 2))
 
 
 def action_for(scene):
@@ -429,67 +451,61 @@ def build_scenes(data, target_seconds):
 
 def draw_overlay(im, data, scene, scene_index, scene_time, scene_count, accent, character_map):
     d = ImageDraw.Draw(im, "RGBA")
-    # Letterbox and title treatment.
-    bar = int(H * .045)
-    d.rectangle((0, 0, W, bar), fill=(0, 0, 0, 145))
-    d.rectangle((0, H - bar, W, H), fill=(0, 0, 0, 155))
-    centered(d, (W * .5, bar * .48), str(data.get("title", "Stickman Story")).upper(),
-             font(int(H * .022), True), "#ffffff")
-    centered(d, (W * .045, bar * .48), f"{scene_index + 1:02d}", font(int(H * .020), True), accent)
-    centered(d, (W * .955, bar * .48), f"{scene_index + 1:02d}/{scene_count:02d}",
-             font(int(H * .017), True), "#e5eaf0")
+    # Cinematic clean frame: no persistent scene counters or title HUD.
+    bar = int(H * .018)
+    d.rectangle((0, 0, W, bar), fill=(0, 0, 0, 85))
+    d.rectangle((0, H - bar, W, H), fill=(0, 0, 0, 95))
     # Light camera shake on action beats and slow digital push-in.
     motion = action_for(scene)
     if motion in ("run", "fall") and int(scene_time * 12) % 2:
         d.rectangle((0, bar, W, H - bar), outline=(255, 230, 180, 35), width=8)
-    # Dynamic character staging and dialogue bubble.
+    # Cinematic staging: vary screen position and scale by beat instead of placing
+    # every cast member in a static lineup. Character identity remains stable.
     ids = [cid for cid in scene.get("characters", []) if cid in character_map]
     ids = ids or list(character_map)[:2]
-    if len(ids) > 3:
-        ids = ids[:3]
-    ground = int(H * (.69 if motion in ("fall", "run") else .70))
-    positions = np.linspace(W * .24, W * .76, len(ids)) if len(ids) > 1 else [W * .5]
+    ids = ids[:3]
+    ground = int(H * (.72 if motion in ("fall", "run") else .73))
     travel = scene_time / max(.1, float(scene["duration"]))
+    if len(ids) == 1:
+        positions = [W * (.50 + .025 * math.sin(travel * math.pi * 2))]
+    elif len(ids) == 2:
+        positions = [W * .34, W * .66]
+    else:
+        positions = [W * .23, W * .50, W * .77]
     for slot, (cid, xpos) in enumerate(zip(ids, positions)):
         c = character_map[cid]
         direction = 1 if slot == 0 else -1
+        phase = scene_time * (6.5 if motion == "run" else 3.0)
         shift = 0
-        if motion in ("run", "sneak"):
-            shift = int(math.sin(scene_time * (5 if motion == "run" else 2.5) + slot) * W * (.035 if motion == "run" else .012))
+        if motion in ("run", "dash"):
+            shift = int(math.sin(phase + slot * 1.8) * W * .045)
+        elif motion == "sneak":
+            shift = int(math.sin(phase + slot) * W * .018)
         elif motion == "fall":
-            shift = int(math.sin(scene_time * 3 + slot) * W * .015)
-        push = 1.0 + .045 * math.sin(travel * math.pi)
+            shift = int(math.sin(scene_time * 4 + slot) * W * .025)
+        emphasis = 1.16 if motion in ("panic", "react", "surrender", "celebrate", "fall") else 1.0
+        push = emphasis + .035 * math.sin(travel * math.pi)
         x = int(xpos + shift)
         draw_character(d, c, x, ground, scene_time + slot * .6, scale=push, action=motion,
-                       facing=direction, accent=accent, name_tag=True)
-        if slot == 0 and scene.get("dialogue") and scene_time < min(3.8, float(scene["duration"]) * .48):
-            text_line = str(scene["dialogue"]).split(":")[-1].strip()
-            if len(text_line) > 88:
-                text_line = text_line[:85].rsplit(" ", 1)[0] + "..."
-            head_y = ground - int(H * .36)
-            draw_speech_bubble(d, text_line, x, head_y - int(H * .13), int(W * .34))
-    # Captions: short, high-contrast, with keyword highlight.
-    caption = str(scene.get("caption") or scene.get("action", ""))
-    lines = wrap_words(caption.upper(), max(18, int(W / 24)))[:2]
-    fnt = font(int(H * .033), True)
-    line_h = int(H * .043)
-    panel_h = line_h * len(lines) + int(H * .035)
-    py = int(H * .835)
-    d.rounded_rectangle((W * .07, py, W * .93, min(H - bar, py + panel_h)),
-                        radius=max(10, int(H * .015)), fill=(8, 12, 20, 226),
-                        outline=(255, 255, 255, 125), width=2)
-    d.rounded_rectangle((W * .07, py, W * .078, min(H - bar, py + panel_h)),
-                        radius=5, fill="#df3f4e")
-    for li, line in enumerate(lines):
-        words = line.split()
-        widths = [d.textlength(word + " ", font=fnt) for word in words]
-        total_width = sum(widths)
-        x = (W - total_width) / 2
-        y = py + int(H * .017) + line_h * (li + .5)
-        for wi, word in enumerate(words):
-            fill = "#ff5968" if word.strip(".,!?") in {"PLAN", "TRAP", "RUN", "ALARM", "WAIT", "NOW", "NO", "ESCAPE", "CAUGHT", "PERFECT", "IMPOSSIBLE"} else "#ffffff"
-            d.text((x, y), word + " ", font=fnt, fill=fill, anchor="lm", stroke_width=1, stroke_fill="#111111")
-            x += widths[wi]
+                       facing=direction, accent=accent, name_tag=False)
+    # Minimal editorial captions: remove the oversized boxed banner that made
+    # every frame look like a template. Short hook text gets a subtle shadow.
+    caption = str(scene.get("caption") or "")
+    if caption:
+        lines = wrap_words(caption, max(18, int(W / 30)))[:2]
+        fnt = font(int(H * .030), True)
+        line_h = int(H * .038)
+        py = int(H * .855)
+        for li, line in enumerate(lines):
+            words = line.split()
+            widths = [d.textlength(word + " ", font=fnt) for word in words]
+            x = (W - sum(widths)) / 2
+            y = py + line_h * (li + .5)
+            for wi, word in enumerate(words):
+                fill = "#ff4d5a" if word.strip(".,!?").upper() in {"PLAN", "TRAP", "RUN", "ALARM", "WAIT", "NOW", "NO", "ESCAPE", "CAUGHT", "PERFECT", "IMPOSSIBLE"} else "#ffffff"
+                d.text((x + 2, y + 3), word + " ", font=fnt, fill=(0, 0, 0, 190), anchor="lm", stroke_width=2, stroke_fill=(0, 0, 0, 210))
+                d.text((x, y), word + " ", font=fnt, fill=fill, anchor="lm", stroke_width=1, stroke_fill="#111111")
+                x += widths[wi]
     # Scene transition wipe/flash only at the very beginning/end of each scene.
     if scene_time < .18:
         alpha = int(150 * (1 - scene_time / .18))
@@ -592,7 +608,7 @@ def main():
     validate(data)
     seconds = DURATION_MINUTES * 60
     scenes = build_scenes(data, seconds)
-    print(f"Preparing {len(scenes)} scenes for {DURATION_MINUTES} minute(s) at {W}x{H}, {FPS} fps")
+    print(f"Preparing {len(scenes)} scenes for {DURATION_MINUTES} minute(s) at {W}x{H}, {FPS} fps; character_color={COLOR_THEME}")
     write_srt(scenes)
     audio = audio_track(scenes, seconds)
     render(data, scenes, audio)
