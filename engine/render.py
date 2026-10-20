@@ -183,8 +183,8 @@ def draw_character(draw, c, x, ground, t, scale=1.0, action="idle", facing=1, ac
     leg2 = -phase
     if action in ("fall", "trip"):
         leg1, leg2 = -limb * .35, limb * .35
-    draw.line((x, hip_y, x - facing * limb * .34 + leg1, y + limb * .72), fill=dark, width=line, joint="curve")
-    draw.line((x, hip_y, x + facing * limb * .34 + leg2, y + limb * .72), fill=dark, width=line, joint="curve")
+    draw.line((x, hip_y, x - facing * limb * .34 + leg1, y + limb * .72), fill=outfit, width=line, joint="curve")
+    draw.line((x, hip_y, x + facing * limb * .34 + leg2, y + limb * .72), fill=outfit, width=line, joint="curve")
     draw.line((x - facing * limb * .34 + leg1, y + limb * .72, x - facing * limb * .34 + leg1 + facing * line * 2, y + limb * .72), fill="#0d1118", width=line)
     draw.line((x + facing * limb * .34 + leg2, y + limb * .72, x + facing * limb * .34 + leg2 + facing * line * 2, y + limb * .72), fill="#0d1118", width=line)
     # torso and costume details
@@ -208,12 +208,12 @@ def draw_character(draw, c, x, ground, t, scale=1.0, action="idle", facing=1, ac
     else:
         swing = math.sin(t * 7) * arm_len * .35 if movement else math.sin(t * 2) * arm_len * .05
         left, right = (x - arm_len * .6 + swing, shoulder_y + arm_len * .7), (x + arm_len * .6 - swing, shoulder_y + arm_len * .7)
-    draw.line((x, shoulder_y + 8, *left), fill=skin, width=line, joint="curve")
-    draw.line((x, shoulder_y + 8, *right), fill=skin, width=line, joint="curve")
+    draw.line((x, shoulder_y + 8, *left), fill=outfit, width=line, joint="curve")
+    draw.line((x, shoulder_y + 8, *right), fill=outfit, width=line, joint="curve")
     # hands
     for hx, hy in (left, right):
         rr = max(4, line // 2)
-        draw.ellipse((hx - rr, hy - rr, hx + rr, hy + rr), fill=skin, outline=dark, width=1)
+        draw.ellipse((hx - rr, hy - rr, hx + rr, hy + rr), fill=outfit, outline=dark, width=1)
     # head, hair and facial expression
     hy = shoulder_y - head - int(H * .014)
     # Signature reference look: oversized dark round head, bright expressive eyes,
