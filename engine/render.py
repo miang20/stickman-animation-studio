@@ -22,6 +22,13 @@ FPS = 24
 W, H = (1920, 1080) if os.getenv("RESOLUTION", "720p") == "1080p" else (1280, 720)
 DURATION_MINUTES = max(1, min(8, int(os.getenv("DURATION_MINUTES", "5"))))
 VOICE_ON = os.getenv("VOICE", "on").lower() == "on"
+COLOR_THEME = os.getenv("CHARACTER_COLOR", "blue").lower()
+CHARACTER_COLORS = {
+    "blue": "#2588e8", "cyan": "#20c7d9", "red": "#e44747",
+    "green": "#2da66f", "purple": "#8855d9", "orange": "#f08a32",
+    "yellow": "#e8c33b", "pink": "#e65caa", "white": "#e8edf4",
+    "black": "#343943",
+}
 SR = 22050
 random.seed(2026)
 
@@ -157,7 +164,9 @@ def draw_character(draw, c, x, ground, t, scale=1.0, action="idle", facing=1, ac
     torso = int(H * .155 * scale)
     limb = int(H * .12 * scale)
     line = max(4, int(H * .007 * scale))
-    skin, outfit = c.get("accent", "#f0c6a2"), c.get("outfit", "#c83c3c")
+    skin = c.get("accent", "#f0c6a2")
+    # One workflow colour selector recolours every recurring character while preserving identity.
+    outfit = CHARACTER_COLORS.get(COLOR_THEME, CHARACTER_COLORS["blue"])
     dark = "#141923"
     movement = {"walk": 1.0, "sneak": .6, "run": 1.7, "dash": 2.0}.get(action, 0.0)
     bob = int(math.sin(t * (9 if movement else 2.5)) * H * (.010 if movement else .003))
@@ -174,8 +183,8 @@ def draw_character(draw, c, x, ground, t, scale=1.0, action="idle", facing=1, ac
     leg2 = -phase
     if action in ("fall", "trip"):
         leg1, leg2 = -limb * .35, limb * .35
-    draw.line((x, hip_y, x - facing * limb * .34 + leg1, y + limb * .72), fill=dark, width=line, joint="curve")
-    draw.line((x, hip_y, x + facing * limb * .34 + leg2, y + limb * .72), fill=dark, width=line, joint="curve")
+    draw.line((x, hip_y, x - facing * limb * .34 + leg1, y + limb * .72), fill=outfit, width=line, joint="curve")
+    draw.line((x, hip_y, x + facing * limb * .34 + leg2, y + limb * .72), fill=outfit, width=line, joint="curve")
     draw.line((x - facing * limb * .34 + leg1, y + limb * .72, x - facing * limb * .34 + leg1 + facing * line * 2, y + limb * .72), fill="#0d1118", width=line)
     draw.line((x + facing * limb * .34 + leg2, y + limb * .72, x + facing * limb * .34 + leg2 + facing * line * 2, y + limb * .72), fill="#0d1118", width=line)
     # torso and costume details
@@ -199,24 +208,30 @@ def draw_character(draw, c, x, ground, t, scale=1.0, action="idle", facing=1, ac
     else:
         swing = math.sin(t * 7) * arm_len * .35 if movement else math.sin(t * 2) * arm_len * .05
         left, right = (x - arm_len * .6 + swing, shoulder_y + arm_len * .7), (x + arm_len * .6 - swing, shoulder_y + arm_len * .7)
-    draw.line((x, shoulder_y + 8, *left), fill=skin, width=line, joint="curve")
-    draw.line((x, shoulder_y + 8, *right), fill=skin, width=line, joint="curve")
+    draw.line((x, shoulder_y + 8, *left), fill=outfit, width=line, joint="curve")
+    draw.line((x, shoulder_y + 8, *right), fill=outfit, width=line, joint="curve")
     # hands
     for hx, hy in (left, right):
         rr = max(4, line // 2)
-        draw.ellipse((hx - rr, hy - rr, hx + rr, hy + rr), fill=skin, outline=dark, width=1)
+        draw.ellipse((hx - rr, hy - rr, hx + rr, hy + rr), fill=outfit, outline=dark, width=1)
     # head, hair and facial expression
     hy = shoulder_y - head - int(H * .014)
-    draw.ellipse((x - head, hy - head, x + head, hy + head), fill=skin, outline=dark, width=line)
+    # Signature reference look: oversized dark round head, bright expressive eyes,
+    # bold coloured body and clean high-contrast outlines.
+    draw.ellipse((x - head, hy - head, x + head, hy + head), fill="#11151d", outline="#05070a", width=max(line, 3))
+    draw.arc((x - head * .72, hy - head * .72, x + head * .72, hy + head * .72), 205, 315, fill="#353c48", width=max(2, line // 3))
+    # Clean silhouette: no spiky symbols; hair is a restrained curved shape that
+    # follows the round head, so every character reads as an intentional cartoon.
     hair = c.get("hair", "short")
-    if hair == "messy":
-        for i in range(5):
-            hx = x - head + int(i * head / 2)
-            draw.polygon([(hx, hy - head // 2), (hx + head // 4, hy - head - int(head * .25)), (hx + head // 2, hy - head // 2)], fill="#17191f")
-    elif hair == "neat":
-        draw.pieslice((x - head, hy - head - int(head * .12), x + head, hy + head // 2), 180, 355, fill="#1c2026")
+    if hair == "neat":
+        draw.pieslice((x - head * .94, hy - head * .96, x + head * .94, hy + head * .38),
+                      180, 355, fill="#1c2026")
+    elif hair == "messy":
+        draw.arc((x - head * .91, hy - head * .96, x + head * .91, hy + head * .50),
+                 185, 350, fill="#292d35", width=max(3, line // 2))
     else:
-        draw.pieslice((x - head, hy - head, x + head, hy + head // 2), 180, 360, fill="#202126")
+        draw.arc((x - head * .92, hy - head * .94, x + head * .92, hy + head * .40),
+                 185, 350, fill="#292d35", width=max(3, line // 2))
     eye_y, eye_dx = hy - int(head * .02), int(head * .34)
     eye_r = max(3, int(head * .095))
     for ex in (x - eye_dx, x + eye_dx):
@@ -228,10 +243,10 @@ def draw_character(draw, c, x, ground, t, scale=1.0, action="idle", facing=1, ac
         draw.arc((x - head * .32, hy + head * .15, x + head * .32, hy + head * .62), 5, 175, fill=dark, width=max(2, line // 2))
     else:
         draw.arc((x - head * .32, hy + head * .17, x + head * .32, hy + head * .58), 5, 175, fill=dark, width=max(2, line // 2))
-    # distinctive badge and name
-    draw.ellipse((x - line, shoulder_y + int(torso * .34), x + line, shoulder_y + int(torso * .34) + line * 2), fill=accent, outline=dark, width=1)
-    if name_tag:
-        centered(draw, (x, y + int(limb * .94) + int(H * .02)), c.get("name", c["id"]), font(int(H * .015), True), "#ffffff", stroke_width=2)
+    # Restrained costume seam; no floating labels or badge-like symbols.
+    draw.line((x - line * 1.2, shoulder_y + int(torso * .36),
+               x + line * 1.2, shoulder_y + int(torso * .36)),
+              fill="#f2d9a0", width=max(2, line // 2))
 
 
 def action_for(scene):
@@ -429,67 +444,61 @@ def build_scenes(data, target_seconds):
 
 def draw_overlay(im, data, scene, scene_index, scene_time, scene_count, accent, character_map):
     d = ImageDraw.Draw(im, "RGBA")
-    # Letterbox and title treatment.
-    bar = int(H * .045)
-    d.rectangle((0, 0, W, bar), fill=(0, 0, 0, 145))
-    d.rectangle((0, H - bar, W, H), fill=(0, 0, 0, 155))
-    centered(d, (W * .5, bar * .48), str(data.get("title", "Stickman Story")).upper(),
-             font(int(H * .022), True), "#ffffff")
-    centered(d, (W * .045, bar * .48), f"{scene_index + 1:02d}", font(int(H * .020), True), accent)
-    centered(d, (W * .955, bar * .48), f"{scene_index + 1:02d}/{scene_count:02d}",
-             font(int(H * .017), True), "#e5eaf0")
+    # Cinematic clean frame: no persistent scene counters or title HUD.
+    bar = int(H * .018)
+    d.rectangle((0, 0, W, bar), fill=(0, 0, 0, 85))
+    d.rectangle((0, H - bar, W, H), fill=(0, 0, 0, 95))
     # Light camera shake on action beats and slow digital push-in.
     motion = action_for(scene)
     if motion in ("run", "fall") and int(scene_time * 12) % 2:
         d.rectangle((0, bar, W, H - bar), outline=(255, 230, 180, 35), width=8)
-    # Dynamic character staging and dialogue bubble.
+    # Cinematic staging: vary screen position and scale by beat instead of placing
+    # every cast member in a static lineup. Character identity remains stable.
     ids = [cid for cid in scene.get("characters", []) if cid in character_map]
     ids = ids or list(character_map)[:2]
-    if len(ids) > 3:
-        ids = ids[:3]
-    ground = int(H * (.69 if motion in ("fall", "run") else .70))
-    positions = np.linspace(W * .24, W * .76, len(ids)) if len(ids) > 1 else [W * .5]
+    ids = ids[:3]
+    ground = int(H * (.72 if motion in ("fall", "run") else .73))
     travel = scene_time / max(.1, float(scene["duration"]))
+    if len(ids) == 1:
+        positions = [W * (.50 + .025 * math.sin(travel * math.pi * 2))]
+    elif len(ids) == 2:
+        positions = [W * .34, W * .66]
+    else:
+        positions = [W * .23, W * .50, W * .77]
     for slot, (cid, xpos) in enumerate(zip(ids, positions)):
         c = character_map[cid]
         direction = 1 if slot == 0 else -1
+        phase = scene_time * (6.5 if motion == "run" else 3.0)
         shift = 0
-        if motion in ("run", "sneak"):
-            shift = int(math.sin(scene_time * (5 if motion == "run" else 2.5) + slot) * W * (.035 if motion == "run" else .012))
+        if motion in ("run", "dash"):
+            shift = int(math.sin(phase + slot * 1.8) * W * .045)
+        elif motion == "sneak":
+            shift = int(math.sin(phase + slot) * W * .018)
         elif motion == "fall":
-            shift = int(math.sin(scene_time * 3 + slot) * W * .015)
-        push = 1.0 + .045 * math.sin(travel * math.pi)
+            shift = int(math.sin(scene_time * 4 + slot) * W * .025)
+        emphasis = 1.16 if motion in ("panic", "react", "surrender", "celebrate", "fall") else 1.0
+        push = emphasis + .035 * math.sin(travel * math.pi)
         x = int(xpos + shift)
         draw_character(d, c, x, ground, scene_time + slot * .6, scale=push, action=motion,
-                       facing=direction, accent=accent, name_tag=True)
-        if slot == 0 and scene.get("dialogue") and scene_time < min(3.8, float(scene["duration"]) * .48):
-            text_line = str(scene["dialogue"]).split(":")[-1].strip()
-            if len(text_line) > 88:
-                text_line = text_line[:85].rsplit(" ", 1)[0] + "..."
-            head_y = ground - int(H * .36)
-            draw_speech_bubble(d, text_line, x, head_y - int(H * .13), int(W * .34))
-    # Captions: short, high-contrast, with keyword highlight.
-    caption = str(scene.get("caption") or scene.get("action", ""))
-    lines = wrap_words(caption.upper(), max(18, int(W / 24)))[:2]
-    fnt = font(int(H * .033), True)
-    line_h = int(H * .043)
-    panel_h = line_h * len(lines) + int(H * .035)
-    py = int(H * .835)
-    d.rounded_rectangle((W * .07, py, W * .93, min(H - bar, py + panel_h)),
-                        radius=max(10, int(H * .015)), fill=(8, 12, 20, 226),
-                        outline=(255, 255, 255, 125), width=2)
-    d.rounded_rectangle((W * .07, py, W * .078, min(H - bar, py + panel_h)),
-                        radius=5, fill="#df3f4e")
-    for li, line in enumerate(lines):
-        words = line.split()
-        widths = [d.textlength(word + " ", font=fnt) for word in words]
-        total_width = sum(widths)
-        x = (W - total_width) / 2
-        y = py + int(H * .017) + line_h * (li + .5)
-        for wi, word in enumerate(words):
-            fill = "#ff5968" if word.strip(".,!?") in {"PLAN", "TRAP", "RUN", "ALARM", "WAIT", "NOW", "NO", "ESCAPE", "CAUGHT", "PERFECT", "IMPOSSIBLE"} else "#ffffff"
-            d.text((x, y), word + " ", font=fnt, fill=fill, anchor="lm", stroke_width=1, stroke_fill="#111111")
-            x += widths[wi]
+                       facing=direction, accent=accent, name_tag=False)
+    # Minimal editorial captions: remove the oversized boxed banner that made
+    # every frame look like a template. Short hook text gets a subtle shadow.
+    caption = str(scene.get("caption") or "")
+    if caption:
+        lines = wrap_words(caption, max(18, int(W / 30)))[:2]
+        fnt = font(int(H * .030), True)
+        line_h = int(H * .038)
+        py = int(H * .855)
+        for li, line in enumerate(lines):
+            words = line.split()
+            widths = [d.textlength(word + " ", font=fnt) for word in words]
+            x = (W - sum(widths)) / 2
+            y = py + line_h * (li + .5)
+            for wi, word in enumerate(words):
+                fill = "#ff4d5a" if word.strip(".,!?").upper() in {"PLAN", "TRAP", "RUN", "ALARM", "WAIT", "NOW", "NO", "ESCAPE", "CAUGHT", "PERFECT", "IMPOSSIBLE"} else "#ffffff"
+                d.text((x + 2, y + 3), word + " ", font=fnt, fill=(0, 0, 0, 190), anchor="lm", stroke_width=2, stroke_fill=(0, 0, 0, 210))
+                d.text((x, y), word + " ", font=fnt, fill=fill, anchor="lm", stroke_width=1, stroke_fill="#111111")
+                x += widths[wi]
     # Scene transition wipe/flash only at the very beginning/end of each scene.
     if scene_time < .18:
         alpha = int(150 * (1 - scene_time / .18))
@@ -592,7 +601,7 @@ def main():
     validate(data)
     seconds = DURATION_MINUTES * 60
     scenes = build_scenes(data, seconds)
-    print(f"Preparing {len(scenes)} scenes for {DURATION_MINUTES} minute(s) at {W}x{H}, {FPS} fps")
+    print(f"Preparing {len(scenes)} scenes for {DURATION_MINUTES} minute(s) at {W}x{H}, {FPS} fps; character_color={COLOR_THEME}")
     write_srt(scenes)
     audio = audio_track(scenes, seconds)
     render(data, scenes, audio)
