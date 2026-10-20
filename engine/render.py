@@ -86,78 +86,98 @@ def wrap_words(text, max_chars=34):
 
 
 def make_background(setting):
-    """Build each location once; reusing it avoids an expensive per-frame gradient."""
-    sky, floor, accent = PALETTES.get(setting, PALETTES["safehouse"])
-    top, bottom = rgb(sky), rgb(floor)
-    gradient = np.empty((H, W, 3), dtype=np.uint8)
-    for y in range(H):
-        f = y / max(1, H - 1)
-        gradient[y, :, :] = [int(top[k] * (1 - f) + bottom[k] * f) for k in range(3)]
-    im = Image.fromarray(gradient, "RGB")
+    """Clean, flat 2D cartoon environments with readable props and simple perspective."""
+    # Bright illustrated backgrounds rather than dark, cinematic gradients.
+    palettes = {
+        "safehouse": ("#f4eee2", "#d9c8ad", "#d8b66a"),
+        "bank": ("#eaf2f5", "#d8dfe1", "#d8b66a"),
+        "street": ("#e5f1fa", "#d7dce0", "#e4c56b"),
+        "police": ("#eaf1f6", "#d4dfe8", "#9fc7e5"),
+        "warehouse": ("#f0e9df", "#d2c2ae", "#c6a078"),
+        "roof": ("#e8f1f5", "#cfdde2", "#e4c56b"),
+        "vault": ("#e5eeeb", "#cbd8d4", "#9fc9bd"),
+        "control_room": ("#e9eef5", "#d0d9e4", "#9fc7e5"),
+        "van": ("#e8edf0", "#cdd5da", "#e4c56b"),
+        "hall": ("#f1eee7", "#d9d3c7", "#e4c56b"),
+    }
+    sky, floor, accent = palettes.get(setting, palettes["safehouse"])
+    im = Image.new("RGB", (W, H), sky)
     d = ImageDraw.Draw(im)
-    horizon = int(H * .70)
+    ink = "#30343a"
+    wall = "#faf8f2"
+    trim = "#8c969b"
+    horizon = int(H * .72)
 
+    # Simple room/building silhouette with bold outlines and clear scene identity.
     if setting in ("street", "roof", "police"):
-        bw = W // 9
-        for i in range(-1, 11):
-            x = i * bw
-            bh = int(H * (.18 + ((i * 37) % 7) / 35))
-            d.rectangle((x, horizon - bh, x + bw - 8, horizon), fill="#253348", outline="#172333", width=max(2, W // 500))
-            for wy in range(horizon - bh + 24, horizon - 16, max(22, H // 22)):
-                for wx in range(x + 15, x + bw - 15, max(22, W // 42)):
-                    d.rectangle((wx, wy, wx + 9, wy + 13), fill=accent)
-    elif setting == "bank":
-        d.rectangle((W * .12, H * .22, W * .88, horizon), fill="#e5e1d8", outline="#596575", width=5)
-        for x in np.linspace(W * .18, W * .82, 7):
-            d.polygon([(x - 18, H * .30), (x + 18, H * .30), (x + 24, horizon), (x - 24, horizon)], fill="#f7f3e9", outline="#66717d")
-        d.polygon([(W * .10, H * .23), (W * .5, H * .10), (W * .90, H * .23)], fill="#c9d0d7", outline="#66717d")
-        centered(d, (W * .5, H * .18), "CENTRAL RESERVE", font(int(H * .032), True), "#28364a")
-    elif setting in ("vault", "control_room"):
-        d.rectangle((W * .08, H * .16, W * .92, horizon), fill="#253b46", outline="#101923", width=5)
-        if setting == "vault":
-            d.ellipse((W * .35, H * .23, W * .65, H * .61), fill="#82949a", outline="#d4e0df", width=max(8, W // 100))
-            d.ellipse((W * .41, H * .29, W * .59, H * .55), fill="#354953", outline="#101923", width=5)
-            d.ellipse((W * .47, H * .35, W * .53, H * .49), fill="#9bb4b8", outline="#17232a", width=4)
+        d.rectangle((0, 0, W, horizon), fill=sky)
+        if setting == "roof":
+            d.rectangle((0, H * .12, W, H * .18), fill="#b8c8cf", outline=ink, width=max(2, W // 500))
+            d.rectangle((W * .08, H * .30, W * .92, H * .70), fill="#e7e7df", outline=ink, width=max(2, W // 500))
         else:
-            for i in range(6):
-                x = int(W * (.16 + i * .135))
-                d.rounded_rectangle((x, H * .24, x + W * .09, H * .47), radius=8, fill="#172337", outline=accent, width=3)
-                for j in range(3):
-                    d.line((x + 12, H * (.29 + j * .05), x + W * .075, H * (.29 + j * .05)), fill="#47768a", width=3)
+            bw = W // 8
+            for i in range(-1, 10):
+                x = i * bw
+                bh = int(H * (.24 + ((i * 37) % 5) / 24))
+                d.rectangle((x, horizon - bh, x + bw - 7, horizon), fill=("#c6d5dc" if i % 2 else "#b7cbd4"), outline=ink, width=max(2, W // 650))
+                for wy in range(horizon - bh + 20, horizon - 12, max(28, H // 18)):
+                    for wx in range(x + 14, x + bw - 15, max(28, W // 32)):
+                        d.rectangle((wx, wy, wx + 10, wy + 14), fill="#f7e6a9", outline="#8e9ba0", width=1)
+        if setting == "police":
+            d.rectangle((W * .68, H * .40, W * .88, H * .69), fill="#f8f8f3", outline=ink, width=4)
+            d.rectangle((W * .72, H * .45, W * .84, H * .53), fill="#9fc7e5", outline=ink, width=3)
     else:
-        d.rectangle((W * .05, H * .12, W * .95, horizon), fill="#354252", outline="#111a27", width=4)
-        d.line((W * .05, H * .28, W * .95, H * .28), fill="#566477", width=3)
+        d.rectangle((W * .035, H * .07, W * .965, horizon), fill=wall, outline=ink, width=max(3, W // 420))
+        # A few consistent wall lines make it read as a drawn set, not an empty gradient.
+        d.line((W * .04, H * .22, W * .96, H * .22), fill="#d5d0c5", width=max(2, W // 600))
         for x in (W * .22, W * .5, W * .78):
-            d.ellipse((x - 30, H * .14, x + 30, H * .17), fill="#ffe7a6")
-            d.line((x, H * .17, x, H * .27), fill="#8d9aa8", width=3)
-        if setting == "safehouse":
-            bx, by, bw, bh = int(W * .58), int(H * .20), int(W * .32), int(H * .34)
-            d.rounded_rectangle((bx, by, bx + bw, by + bh), radius=12, fill="#e4ddc9", outline="#151c26", width=5)
-            for j in range(5):
-                x1 = bx + 25 + j * bw // 5
-                d.line((x1, by + 25, x1 + bw // 6, by + bh - 25), fill="#a5a18f", width=3)
-            for j in range(4):
-                y = by + 35 + j * bh // 4
-                d.line((bx + 20, y, bx + bw - 20, y + 15), fill="#b0a894", width=3)
-            for px, py in ((.66, .30), (.78, .39), (.84, .28), (.72, .47)):
-                x, y = int(W * px), int(H * py)
-                d.ellipse((x - 9, y - 9, x + 9, y + 9), fill="#cf4545", outline="#632b2b", width=2)
-        elif setting == "warehouse":
-            for x in range(int(W * .12), int(W * .9), int(W * .2)):
-                d.rectangle((x, H * .39, x + W * .12, horizon), fill="#7d6852", outline="#332d2c", width=4)
-                d.line((x, H * .45, x + W * .12, H * .45), fill="#b49a72", width=3)
-    # perspective floor
-    d.polygon([(0, horizon), (W, horizon), (W, H), (0, H)], fill="#303744")
-    for x in range(0, W + 1, max(80, W // 10)):
-        d.line((W * .5, horizon, x, H), fill="#3b4552", width=2)
-    d.line((0, horizon, W, horizon), fill="#111923", width=5)
-    # Foreground props create more visual variety across scene types.
-    if setting in ("safehouse", "warehouse", "van"):
-        for x in (W * .12, W * .84):
-            d.rectangle((x, H * .57, x + W * .08, H * .70), fill="#6b5848", outline="#211f25", width=4)
-            d.line((x, H * .62, x + W * .08, H * .62), fill="#9a8061", width=3)
-    return im, accent
+            d.ellipse((x - W * .012, H * .105, x + W * .012, H * .125), fill="#f4d98c", outline=ink, width=2)
+        if setting == "bank":
+            d.rectangle((W * .12, H * .28, W * .88, H * .69), fill="#e3e8e5", outline=ink, width=4)
+            for x in np.linspace(W * .18, W * .82, 6):
+                d.rectangle((x, H * .32, x + W * .045, H * .67), fill="#f7f5ee", outline="#9aa5a5", width=3)
+            d.rectangle((W * .39, H * .43, W * .61, H * .69), fill="#c5d8dc", outline=ink, width=4)
+            centered(d, (W * .5, H * .25), "BANK", font(int(H * .035), True), ink)
+        elif setting == "vault":
+            d.rectangle((W * .28, H * .24, W * .72, H * .69), fill="#b9c9c8", outline=ink, width=5)
+            d.ellipse((W * .38, H * .31, W * .62, H * .63), fill="#e6ece8", outline=ink, width=5)
+            d.ellipse((W * .45, H * .38, W * .55, H * .56), fill="#b9c9c8", outline=ink, width=4)
+            d.line((W * .5, H * .39, W * .5, H * .55), fill=ink, width=4)
+            d.line((W * .45, H * .47, W * .55, H * .47), fill=ink, width=4)
+        elif setting == "control_room":
+            for i in range(5):
+                x = int(W * (.12 + i * .155))
+                d.rectangle((x, H * .28, x + W * .105, H * .48), fill="#d7e5e8", outline=ink, width=3)
+                d.line((x + 10, H * .34, x + W * .095, H * .34), fill="#7faeb7", width=3)
+                d.line((x + 10, H * .40, x + W * .075, H * .40), fill="#7faeb7", width=3)
+        elif setting in ("safehouse", "warehouse"):
+            for x in (W * .12, W * .76):
+                d.rectangle((x, H * .38, x + W * .12, H * .69), fill="#c8b18f", outline=ink, width=4)
+                d.line((x, H * .48, x + W * .12, H * .48), fill="#8c7559", width=3)
+                d.line((x, H * .58, x + W * .12, H * .58), fill="#8c7559", width=3)
+            if setting == "safehouse":
+                d.rectangle((W * .37, H * .34, W * .63, H * .55), fill="#d9e6eb", outline=ink, width=4)
+                d.line((W * .5, H * .34, W * .5, H * .55), fill=trim, width=3)
+                d.line((W * .37, H * .445, W * .63, H * .445), fill=trim, width=3)
+        elif setting == "van":
+            d.rectangle((W * .18, H * .39, W * .78, H * .65), fill="#e7e9e6", outline=ink, width=5)
+            d.rectangle((W * .61, H * .43, W * .74, H * .54), fill="#b9d5df", outline=ink, width=3)
+            for x in (W * .30, W * .67):
+                d.ellipse((x - W * .035, H * .61, x + W * .035, H * .72), fill="#555b60", outline=ink, width=3)
+        else:
+            d.rectangle((W * .18, H * .27, W * .34, H * .69), fill="#d7e4e7", outline=ink, width=4)
+            d.rectangle((W * .66, H * .27, W * .82, H * .69), fill="#d7e4e7", outline=ink, width=4)
 
+    # Flat floor and restrained perspective lines; no dramatic lighting or HUD graphics.
+    d.rectangle((0, horizon, W, H), fill=floor)
+    d.line((0, horizon, W, horizon), fill=ink, width=max(3, W // 420))
+    for x in range(0, W + 1, max(120, W // 8)):
+        d.line((W * .5, horizon, x, H), fill="#c2b9aa", width=max(1, W // 1000))
+    if setting in ("safehouse", "warehouse", "hall"):
+        for x in (W * .08, W * .84):
+            d.rectangle((x, H * .61, x + W * .08, H * .73), fill="#c8b18f", outline=ink, width=3)
+            d.line((x, H * .66, x + W * .08, H * .66), fill="#8c7559", width=2)
+    return im, accent
 
 def draw_character(draw, c, x, ground, t, scale=1.0, action="idle", facing=1, accent="#f2c14e", name_tag=True):
     head = int(H * .060 * scale)
@@ -214,24 +234,11 @@ def draw_character(draw, c, x, ground, t, scale=1.0, action="idle", facing=1, ac
     for hx, hy in (left, right):
         rr = max(4, line // 2)
         draw.ellipse((hx - rr, hy - rr, hx + rr, hy + rr), fill=outfit, outline=dark, width=1)
-    # head, hair and facial expression
+    # Clean Henry-Stickmin-inspired cartoon language: round white head, bold dark outline,
+    # simple dot eyes, and clear mouth shapes. Keep the selected body colour unchanged.
     hy = shoulder_y - head - int(H * .014)
-    # Signature reference look: oversized dark round head, bright expressive eyes,
-    # bold coloured body and clean high-contrast outlines.
-    draw.ellipse((x - head, hy - head, x + head, hy + head), fill="#11151d", outline="#05070a", width=max(line, 3))
-    draw.arc((x - head * .72, hy - head * .72, x + head * .72, hy + head * .72), 205, 315, fill="#353c48", width=max(2, line // 3))
-    # Clean silhouette: no spiky symbols; hair is a restrained curved shape that
-    # follows the round head, so every character reads as an intentional cartoon.
-    hair = c.get("hair", "short")
-    if hair == "neat":
-        draw.pieslice((x - head * .94, hy - head * .96, x + head * .94, hy + head * .38),
-                      180, 355, fill="#1c2026")
-    elif hair == "messy":
-        draw.arc((x - head * .91, hy - head * .96, x + head * .91, hy + head * .50),
-                 185, 350, fill="#292d35", width=max(3, line // 2))
-    else:
-        draw.arc((x - head * .92, hy - head * .94, x + head * .92, hy + head * .40),
-                 185, 350, fill="#292d35", width=max(3, line // 2))
+    draw.ellipse((x - head, hy - head, x + head, hy + head),
+                 fill="#fffdf8", outline="#20242a", width=max(line, 4))
     eye_y, eye_dx = hy - int(head * .02), int(head * .34)
     eye_r = max(3, int(head * .095))
     for ex in (x - eye_dx, x + eye_dx):
