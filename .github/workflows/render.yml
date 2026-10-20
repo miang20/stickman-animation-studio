@@ -42,6 +42,22 @@ on:
           - "am_adam"
           - "am_michael"
         default: "af_heart"
+      character_color:
+        description: "Main colour for every recurring character"
+        required: true
+        type: choice
+        options:
+          - "blue"
+          - "cyan"
+          - "red"
+          - "green"
+          - "purple"
+          - "orange"
+          - "yellow"
+          - "pink"
+          - "white"
+          - "black"
+        default: "blue"
 
 permissions:
   contents: read
@@ -87,6 +103,7 @@ jobs:
           RESOLUTION: ${{ inputs.resolution }}
           VOICE: ${{ inputs.voice }}
           VOICE_NAME: ${{ inputs.voice_name }}
+          CHARACTER_COLOR: ${{ inputs.character_color }}
         run: python engine/render.py
 
       - name: Verify MP4 output

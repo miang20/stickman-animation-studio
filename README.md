@@ -4,7 +4,8 @@ A free-first, code-based 2D cartoon episode maker. It uses Python, Pillow, NumPy
 
 ## What this version includes
 
-- Reusable character bible with stable IDs, outfit colours, hair and roles.
+- Reusable character bible with stable IDs, fixed dark round heads, expressive white eyes, outfit details, hair and roles.
+- **Workflow colour picker**: choose blue, cyan, red, green, purple, orange, yellow, pink, white or black; the selected main colour is applied consistently to every recurring character in that episode.
 - Ten hand-drawn environments: safehouse, bank, street, police area, warehouse, rooftop, vault, control room, van and hall.
 - Reusable walk/run/sneak/point/wave/panic/fall/celebrate/surrender poses, arm and leg cycles, character name labels and facial expressions.
 - Original 30-scene, five-minute heist-comedy sample story.
@@ -51,8 +52,9 @@ If Kokoro cannot initialize or fails to produce audio, the render stops with an 
 4. Choose duration (1, 2, 3, 5 or 8 minutes). Default is **5 minutes**.
 5. Choose **720p** first; 1080p requires more processing.
 6. Keep narration **on** and choose a voice under **voice_name**; `af_heart` is the default.
-7. After the workflow finishes successfully, open the run and download the **stickman-episode-package** artifact ZIP.
-8. Extract the ZIP on your phone to get `stickman-episode.mp4` and `captions.srt`.
+7. Select **character_color** to recolour the recurring characters for that video (blue is the default).
+8. After the workflow finishes successfully, open the run and download the **stickman-episode-package** artifact ZIP.
+9. Extract the ZIP on your phone to get `stickman-episode.mp4` and `captions.srt`.
 
 Nothing runs automatically on a push. The workflow has not been run as part of setup, so the first real render still needs to validate installation, runtime speed, voice output, audio sync and visual quality.
 
@@ -75,7 +77,7 @@ For a five-minute episode, use around 30 scenes at 10 seconds each. For an eight
 
 - Rendering is CPU-based and uses free GitHub Actions minutes/runner time where applicable. A 1080p, eight-minute job is much heavier than a 720p, one-minute job.
 - Kokoro is an open-weight neural voice model; the model and required packages must download during setup. It is not a zero-download or instant first-run process.
-- This is deterministic, code-drawn 2D animation—not full generative animation, hand-keyframed studio animation, or live-action footage. Motion is built from reusable poses and cycles.
+- This is deterministic, code-drawn 2D animation—not full generative animation, hand-keyframed studio animation, or live-action footage. The character style now uses a high-contrast dark round head, expressive eyes and selectable shared outfit colour; motion is built from reusable poses and cycles. It aims at the reference's illustrated look but is not a frame-for-frame copy.
 - The renderer caches each setting's background to reduce repeated work. Runtime and visual quality must still be confirmed by the first authorized render.
 - Temporary render/audio files are written to `.render_tmp` and cleaned up after a successful render. The MP4 and SRT are written to `output/`; the workflow uploads them as the artifact.
 - The sample is an original fictional heist comedy. For a series inspired by heist fiction, use original characters, dialogue, scenes and branding rather than copying protected movie scenes or character likenesses.

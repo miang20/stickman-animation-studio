@@ -22,6 +22,13 @@ FPS = 24
 W, H = (1920, 1080) if os.getenv("RESOLUTION", "720p") == "1080p" else (1280, 720)
 DURATION_MINUTES = max(1, min(8, int(os.getenv("DURATION_MINUTES", "5"))))
 VOICE_ON = os.getenv("VOICE", "on").lower() == "on"
+COLOR_THEME = os.getenv("CHARACTER_COLOR", "blue").lower()
+CHARACTER_COLORS = {
+    "blue": "#2588e8", "cyan": "#20c7d9", "red": "#e44747",
+    "green": "#2da66f", "purple": "#8855d9", "orange": "#f08a32",
+    "yellow": "#e8c33b", "pink": "#e65caa", "white": "#e8edf4",
+    "black": "#343943",
+}
 SR = 22050
 random.seed(2026)
 
@@ -157,7 +164,9 @@ def draw_character(draw, c, x, ground, t, scale=1.0, action="idle", facing=1, ac
     torso = int(H * .155 * scale)
     limb = int(H * .12 * scale)
     line = max(4, int(H * .007 * scale))
-    skin, outfit = c.get("accent", "#f0c6a2"), c.get("outfit", "#c83c3c")
+    skin = c.get("accent", "#f0c6a2")
+    # One workflow colour selector recolours every recurring character while preserving identity.
+    outfit = CHARACTER_COLORS.get(COLOR_THEME, CHARACTER_COLORS["blue"])
     dark = "#141923"
     movement = {"walk": 1.0, "sneak": .6, "run": 1.7, "dash": 2.0}.get(action, 0.0)
     bob = int(math.sin(t * (9 if movement else 2.5)) * H * (.010 if movement else .003))
@@ -174,8 +183,8 @@ def draw_character(draw, c, x, ground, t, scale=1.0, action="idle", facing=1, ac
     leg2 = -phase
     if action in ("fall", "trip"):
         leg1, leg2 = -limb * .35, limb * .35
-    draw.line((x, hip_y, x - facing * limb * .34 + leg1, y + limb * .72), fill=dark, width=line, joint="curve")
-    draw.line((x, hip_y, x + facing * limb * .34 + leg2, y + limb * .72), fill=dark, width=line, joint="curve")
+    draw.line((x, hip_y, x - facing * limb * .34 + leg1, y + limb * .72), fill=outfit, width=line, joint="curve")
+    draw.line((x, hip_y, x + facing * limb * .34 + leg2, y + limb * .72), fill=outfit, width=line, joint="curve")
     draw.line((x - facing * limb * .34 + leg1, y + limb * .72, x - facing * limb * .34 + leg1 + facing * line * 2, y + limb * .72), fill="#0d1118", width=line)
     draw.line((x + facing * limb * .34 + leg2, y + limb * .72, x + facing * limb * .34 + leg2 + facing * line * 2, y + limb * .72), fill="#0d1118", width=line)
     # torso and costume details
@@ -199,15 +208,18 @@ def draw_character(draw, c, x, ground, t, scale=1.0, action="idle", facing=1, ac
     else:
         swing = math.sin(t * 7) * arm_len * .35 if movement else math.sin(t * 2) * arm_len * .05
         left, right = (x - arm_len * .6 + swing, shoulder_y + arm_len * .7), (x + arm_len * .6 - swing, shoulder_y + arm_len * .7)
-    draw.line((x, shoulder_y + 8, *left), fill=skin, width=line, joint="curve")
-    draw.line((x, shoulder_y + 8, *right), fill=skin, width=line, joint="curve")
+    draw.line((x, shoulder_y + 8, *left), fill=outfit, width=line, joint="curve")
+    draw.line((x, shoulder_y + 8, *right), fill=outfit, width=line, joint="curve")
     # hands
     for hx, hy in (left, right):
         rr = max(4, line // 2)
-        draw.ellipse((hx - rr, hy - rr, hx + rr, hy + rr), fill=skin, outline=dark, width=1)
+        draw.ellipse((hx - rr, hy - rr, hx + rr, hy + rr), fill=outfit, outline=dark, width=1)
     # head, hair and facial expression
     hy = shoulder_y - head - int(H * .014)
-    draw.ellipse((x - head, hy - head, x + head, hy + head), fill=skin, outline=dark, width=line)
+    # Signature reference look: oversized dark round head, bright expressive eyes,
+    # bold coloured body and clean high-contrast outlines.
+    draw.ellipse((x - head, hy - head, x + head, hy + head), fill="#11151d", outline="#05070a", width=max(line, 3))
+    draw.arc((x - head * .72, hy - head * .72, x + head * .72, hy + head * .72), 205, 315, fill="#353c48", width=max(2, line // 3))
     hair = c.get("hair", "short")
     if hair == "messy":
         for i in range(5):
@@ -592,7 +604,7 @@ def main():
     validate(data)
     seconds = DURATION_MINUTES * 60
     scenes = build_scenes(data, seconds)
-    print(f"Preparing {len(scenes)} scenes for {DURATION_MINUTES} minute(s) at {W}x{H}, {FPS} fps")
+    print(f"Preparing {len(scenes)} scenes for {DURATION_MINUTES} minute(s) at {W}x{H}, {FPS} fps; character_color={COLOR_THEME}")
     write_srt(scenes)
     audio = audio_track(scenes, seconds)
     render(data, scenes, audio)
